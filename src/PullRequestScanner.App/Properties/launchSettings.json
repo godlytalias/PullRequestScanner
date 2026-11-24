@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PullRequestScanner.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "PullRequestScanner.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

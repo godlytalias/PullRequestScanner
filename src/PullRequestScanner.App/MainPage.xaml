@@ -1,0 +1,1730 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="PullRequestScanner.App.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:PullRequestScanner.App"
+    xmlns:controls="using:PullRequestScanner.App.Controls"
+    xmlns:vm="using:PullRequestScanner.App.ViewModels"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    NavigationCacheMode="Required"
+    mc:Ignorable="d">
+    <Page.KeyboardAccelerators>
+        <KeyboardAccelerator Key="L" Modifiers="Control" Invoked="OpenReviewAccelerator_Invoked" />
+        <KeyboardAccelerator Key="O" Modifiers="Control" Invoked="OpenReviewAccelerator_Invoked" />
+        <KeyboardAccelerator Key="F" Modifiers="Control" Invoked="FindAccelerator_Invoked" />
+        <KeyboardAccelerator Key="F3" Invoked="NextSearchAccelerator_Invoked" />
+        <KeyboardAccelerator Key="F3" Modifiers="Shift" Invoked="PreviousSearchAccelerator_Invoked" />
+        <KeyboardAccelerator Key="F7" Invoked="NextChangeAccelerator_Invoked" />
+        <KeyboardAccelerator Key="F7" Modifiers="Shift" Invoked="PreviousChangeAccelerator_Invoked" />
+        <KeyboardAccelerator Key="F12" Invoked="PeekDefinitionAccelerator_Invoked" />
+        <KeyboardAccelerator Key="F5" Invoked="RefreshAccelerator_Invoked" />
+        <KeyboardAccelerator Key="F11" Invoked="FocusModeAccelerator_Invoked" />
+        <KeyboardAccelerator Key="Escape" Invoked="FocusModeExitAccelerator_Invoked" />
+        <KeyboardAccelerator Key="Enter" Modifiers="Control" Invoked="SaveCommentAccelerator_Invoked" />
+        <KeyboardAccelerator Key="Enter" Modifiers="Control,Shift" Invoked="PublishAccelerator_Invoked" />
+    </Page.KeyboardAccelerators>
+    <Page.Resources>
+        <DataTemplate x:Key="ReviewCommentReplyTemplate" x:DataType="vm:ReviewCommentViewModel">
+            <Grid
+                Margin="20,0,0,0"
+                Padding="8"
+                RowSpacing="4"
+                Background="{ThemeResource LayerFillColorAltBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource OverlayCornerRadius}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind Author}" />
+                <TextBlock
+                    Grid.Row="1"
+                    IsTextSelectionEnabled="True"
+                    Text="{x:Bind DisplayBody}"
+                    TextWrapping="Wrap" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="ReviewCommentCardTemplate" x:DataType="vm:ReviewCommentViewModel">
+            <Grid
+                Margin="0,4,0,0"
+                Padding="12"
+                HorizontalAlignment="Stretch"
+                RowSpacing="8"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource ControlCornerRadius}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        x:Uid="ToggleCommentThreadButton"
+                        Command="{x:Bind ToggleExpandedCommand}"
+                        Padding="4"
+                        Style="{StaticResource SubtleButtonStyle}">
+                        <FontIcon Glyph="{x:Bind ExpansionGlyph, Mode=OneWay}" />
+                    </Button>
+                    <StackPanel
+                        Grid.Column="1"
+                        Spacing="2">
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind Author}" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind ThreadSummary}"
+                            Visibility="{x:Bind HasReplies}" />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        VerticalAlignment="Center">
+                        <Border
+                            Padding="6,2"
+                            Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                            CornerRadius="{StaticResource ControlCornerRadius}"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind IsDraftStatus}">
+                            <TextBlock
+                                Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Status}" />
+                        </Border>
+                        <Border
+                            Padding="6,2"
+                            Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                            CornerRadius="{StaticResource ControlCornerRadius}"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind IsFailedStatus}">
+                            <TextBlock
+                                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Status}" />
+                        </Border>
+                        <Border
+                            Padding="6,2"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                            CornerRadius="{StaticResource ControlCornerRadius}"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind IsActiveStatus}">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Status}" />
+                        </Border>
+                        <Border
+                            Padding="6,2"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                            CornerRadius="{StaticResource ControlCornerRadius}"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind IsPublishedStatus}">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Status}" />
+                        </Border>
+                        <Border
+                            Padding="6,2"
+                            Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                            CornerRadius="{StaticResource ControlCornerRadius}"
+                            VerticalAlignment="Center"
+                            Visibility="{x:Bind IsResolved}">
+                            <TextBlock
+                                Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Status}" />
+                        </Border>
+                        <Button
+                            x:Uid="JumpToCommentButton"
+                            Command="{x:Bind NavigateCommand}"
+                            Padding="4"
+                            Style="{StaticResource SubtleButtonStyle}"
+                            Visibility="{x:Bind ShowInAppJump}">
+                            <FontIcon Glyph="&#xE72A;" />
+                        </Button>
+                        <HyperlinkButton
+                            NavigateUri="{x:Bind WebUri}"
+                            Padding="4"
+                            Visibility="{x:Bind ShowProviderLink}">
+                            <FontIcon Glyph="&#xE8A7;" />
+                        </HyperlinkButton>
+                    </StackPanel>
+                    <Button
+                        Grid.Column="3"
+                        x:Uid="EditCommentButton"
+                        Command="{x:Bind EditCommand}"
+                        Padding="4"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        Visibility="{x:Bind CanEdit}">
+                        <FontIcon Glyph="&#xE70F;" />
+                    </Button>
+                    <Button
+                        Grid.Column="4"
+                        x:Uid="DeleteCommentButton"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        Visibility="{x:Bind CanDelete}">
+                        <FontIcon Glyph="&#xE74D;" />
+                        <Button.Flyout>
+                            <Flyout>
+                                <StackPanel MaxWidth="320" Spacing="12">
+                                    <TextBlock
+                                        x:Uid="DeleteCommentConfirmationText"
+                                        TextWrapping="Wrap" />
+                                    <Button
+                                        x:Uid="ConfirmDeleteCommentButton"
+                                        Command="{x:Bind DeleteCommand}"
+                                        Style="{StaticResource DangerButtonStyle}">
+                                        <Button.Resources>
+                                            <StaticResource x:Key="AccentButtonBackground" ResourceKey="SystemFillColorCriticalBrush" />
+                                            <StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="SystemFillColorCriticalBrush" />
+                                            <StaticResource x:Key="AccentButtonBackgroundPressed" ResourceKey="SystemFillColorCriticalBrush" />
+                                        </Button.Resources>
+                                    </Button>
+                                </StackPanel>
+                            </Flyout>
+                        </Button.Flyout>
+                    </Button>
+                </Grid>
+                <StackPanel
+                    Grid.Row="1"
+                    Spacing="8"
+                    Visibility="{x:Bind IsExpanded, Mode=OneWay}">
+                    <TextBlock
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind Location}" />
+                    <StackPanel
+                        Padding="8"
+                        Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                        CornerRadius="{StaticResource ControlCornerRadius}"
+                        Visibility="{x:Bind ShowSelection, Mode=OneWay}">
+                        <TextBlock
+                            x:Uid="SelectedCodeCardLabel"
+                            Style="{StaticResource CaptionTextBlockStyle}" />
+                        <TextBlock
+                            Style="{StaticResource CodeTextBlockStyle}"
+                            Text="{x:Bind SelectedText}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel
+                        Padding="8"
+                        Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                        CornerRadius="{StaticResource ControlCornerRadius}"
+                        Visibility="{x:Bind ShowSuggestion, Mode=OneWay}">
+                        <TextBlock
+                            x:Uid="SuggestionCardLabel"
+                            Style="{StaticResource CaptionTextBlockStyle}" />
+                        <TextBlock
+                            Style="{StaticResource CodeTextBlockStyle}"
+                            Text="{x:Bind SuggestedReplacement}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <TextBlock
+                        IsTextSelectionEnabled="True"
+                        Text="{x:Bind DisplayBody}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ShowReadOnlyBody, Mode=OneWay}" />
+                    <TextBlock
+                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind Error}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ShowError, Mode=OneWay}" />
+                    <StackPanel
+                        x:Name="EditCommentComposer"
+                        x:Load="{x:Bind IsEditing, Mode=OneWay}"
+                        Spacing="8">
+                        <TextBox
+                            x:Uid="EditCommentBodyTextBox"
+                            AcceptsReturn="True"
+                            MinHeight="96"
+                            Text="{x:Bind EditBody, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            TextWrapping="Wrap" />
+                        <TextBox
+                            x:Uid="EditSuggestionTextBox"
+                            AcceptsReturn="True"
+                            FontFamily="Cascadia Mono"
+                            MinHeight="72"
+                            Text="{x:Bind EditSuggestion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            TextWrapping="NoWrap" />
+                        <StackPanel
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                x:Uid="CancelEditCommentButton"
+                                Command="{x:Bind CancelEditCommand}" />
+                            <Button
+                                x:Uid="SaveEditCommentButton"
+                                Command="{x:Bind SaveEditCommand}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <ItemsControl
+                        HorizontalContentAlignment="Stretch"
+                        ItemTemplate="{StaticResource ReviewCommentReplyTemplate}"
+                        ItemsSource="{x:Bind Replies}"
+                        Visibility="{x:Bind HasReplies}" />
+                    <Button
+                        x:Uid="BeginCommentReplyButton"
+                        Command="{x:Bind BeginReplyCommand}"
+                        HorizontalAlignment="Left"
+                        Visibility="{x:Bind ShowReplyButton, Mode=OneWay}" />
+                    <StackPanel
+                        x:Name="ReplyComposerPanel"
+                        x:Load="{x:Bind ShowReplyComposer, Mode=OneWay}"
+                        Spacing="8">
+                        <TextBox
+                            x:Uid="CommentReplyTextBox"
+                            AcceptsReturn="True"
+                            MinHeight="72"
+                            Text="{x:Bind ReplyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            TextWrapping="Wrap" />
+                        <StackPanel
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <Button
+                                x:Uid="CancelCommentReplyButton"
+                                Command="{x:Bind CancelReplyCommand}" />
+                            <Button
+                                x:Uid="PostCommentReplyButton"
+                                Command="{x:Bind ReplyCommand}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="InlineCommentBalloonTemplate" x:DataType="vm:ReviewCommentViewModel">
+            <ContentControl
+                Margin="8,0,8,8"
+                HorizontalAlignment="Stretch"
+                MaxWidth="720"
+                Content="{x:Bind}"
+                ContentTemplate="{StaticResource ReviewCommentCardTemplate}"
+                HorizontalContentAlignment="Stretch" />
+        </DataTemplate>
+        <DataTemplate x:Key="DiffLineTemplate" x:DataType="vm:DiffLineViewModel">
+            <Grid
+                Padding="8,0"
+                ColumnSpacing="4"
+                RowSpacing="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="{x:Bind OldLineNumberColumnWidth}" />
+                    <ColumnDefinition Width="{x:Bind NewLineNumberColumnWidth}" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border
+                    Grid.ColumnSpan="5"
+                    Background="{ThemeResource AddedDiffLineBackgroundBrush}"
+                    Visibility="{x:Bind IsAdded}" />
+                <Border
+                    Grid.ColumnSpan="5"
+                    Background="{ThemeResource DeletedDiffLineBackgroundBrush}"
+                    Visibility="{x:Bind IsDeleted}" />
+                <Border
+                    Grid.ColumnSpan="5"
+                    Background="{ThemeResource HunkDiffLineBackgroundBrush}"
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                    Visibility="{x:Bind IsHunk}" />
+                <Border
+                    Grid.ColumnSpan="5"
+                    BorderBrush="{ThemeResource AddedDiffLineStrokeBrush}"
+                    BorderThickness="3,0,0,0"
+                    Visibility="{x:Bind IsAdded}" />
+                <Border
+                    Grid.ColumnSpan="5"
+                    BorderBrush="{ThemeResource DeletedDiffLineStrokeBrush}"
+                    BorderThickness="3,0,0,0"
+                    Visibility="{x:Bind IsDeleted}" />
+                <Border
+                    Grid.ColumnSpan="5"
+                    BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                    BorderThickness="3,0,0,0"
+                    Visibility="{x:Bind IsSelected, Mode=OneWay}" />
+                <Button
+                    x:Uid="FoldFunctionButton"
+                    Command="{x:Bind ToggleFoldCommand}"
+                    Padding="0"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    Visibility="{x:Bind HasFold, Mode=OneWay}">
+                    <FontIcon Glyph="{x:Bind FoldGlyph, Mode=OneWay}" />
+                </Button>
+                <Button
+                    x:Uid="OpenLineCommentButton"
+                    Height="24"
+                    MinHeight="24"
+                    MaxHeight="24"
+                    MinWidth="24"
+                    MaxWidth="24"
+                    Command="{x:Bind OpenFocusedCommentCommand}"
+                    Padding="0"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    Visibility="{x:Bind ShowNormalCommentGutter, Mode=OneWay}">
+                    <FontIcon Glyph="&#xE8BD;" />
+                </Button>
+                <TextBlock
+                    Grid.Column="1"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind OldLineNumber}"
+                    TextAlignment="Right"
+                    Typography.NumeralAlignment="Tabular"
+                    Visibility="{x:Bind ShowOldLineNumber}" />
+                <TextBlock
+                    Grid.Column="2"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind NewLineNumber}"
+                    TextAlignment="Right"
+                    Typography.NumeralAlignment="Tabular"
+                    Visibility="{x:Bind ShowNewLineNumber}" />
+                <TextBlock
+                    Grid.Column="3"
+                    Foreground="{ThemeResource AddedDiffLineStrokeBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind Marker}"
+                    Visibility="{x:Bind IsAdded}" />
+                <TextBlock
+                    Grid.Column="3"
+                    Foreground="{ThemeResource DeletedDiffLineStrokeBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind Marker}"
+                    Visibility="{x:Bind IsDeleted}" />
+                <TextBlock
+                    x:Uid="DiffCodeTextBlock"
+                    Grid.Column="4"
+                    DataContextChanged="DiffCodeTextBlock_DataContextChanged"
+                    IsTextSelectionEnabled="True"
+                    Loaded="DiffCodeTextBlock_Loaded"
+                    MinWidth="240"
+                    RightTapped="DiffCodeTextBlock_RightTapped"
+                    SelectionChanged="DiffCodeTextBlock_SelectionChanged"
+                    Style="{StaticResource CodeTextBlockStyle}"
+                    Tapped="DiffCodeTextBlock_Tapped"
+                    TextWrapping="NoWrap"
+                    Unloaded="DiffCodeTextBlock_Unloaded"
+                    Visibility="{x:Bind ShowCodeTextBlock, Mode=OneWay}" />
+                <Button
+                    x:Uid="FocusedCodeLineButton"
+                    Grid.Column="4"
+                    Command="{x:Bind OpenFocusedCommentCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
+                    Padding="0,2"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    Visibility="{x:Bind CanOpenFocusedComment, Mode=OneWay}">
+                    <TextBlock
+                        Style="{StaticResource CodeTextBlockStyle}"
+                        Text="{x:Bind CodeText}"
+                        TextWrapping="NoWrap" />
+                </Button>
+                <StackPanel
+                    Grid.Row="1"
+                    Grid.Column="4"
+                    Spacing="4"
+                    Visibility="{x:Bind IsFoldCollapsed, Mode=OneWay}">
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind FoldSummary, Mode=OneWay}" />
+                </StackPanel>
+                <ItemsControl
+                    Grid.Row="2"
+                    Grid.Column="4"
+                    MaxWidth="720"
+                    HorizontalAlignment="Left"
+                    HorizontalContentAlignment="Stretch"
+                    ItemTemplate="{StaticResource InlineCommentBalloonTemplate}"
+                    ItemsSource="{x:Bind Comments}"
+                    Visibility="{x:Bind HasComments, Mode=OneWay}" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="MarkdownBodyTemplate" x:DataType="vm:MarkdownBlockViewModel">
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Loaded="MarkdownTextBlock_Loaded"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind IsHeading1}" />
+                <TextBlock
+                    Loaded="MarkdownTextBlock_Loaded"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind IsHeading2}" />
+                <TextBlock
+                    Loaded="MarkdownTextBlock_Loaded"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind IsHeading3}" />
+                <TextBlock
+                    Loaded="MarkdownTextBlock_Loaded"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind IsHeading4}" />
+                <TextBlock
+                    Loaded="MarkdownTextBlock_Loaded"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind IsHeading5}" />
+                <TextBlock
+                    Loaded="MarkdownTextBlock_Loaded"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind IsHeading6}" />
+                <Grid
+                    ColumnSpacing="8"
+                    Visibility="{x:Bind IsBullet}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{x:Bind ListMarker}" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Loaded="MarkdownTextBlock_Loaded"
+                        TextWrapping="Wrap" />
+                </Grid>
+                <Grid
+                    ColumnSpacing="8"
+                    Visibility="{x:Bind IsNumbered}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind ListMarker}" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Loaded="MarkdownTextBlock_Loaded"
+                        TextWrapping="Wrap" />
+                </Grid>
+                <Grid ColumnSpacing="8" Visibility="{x:Bind IsTaskChecked}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE73E;" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Loaded="MarkdownTextBlock_Loaded"
+                        TextWrapping="Wrap" />
+                </Grid>
+                <Grid ColumnSpacing="8" Visibility="{x:Bind IsTaskUnchecked}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="&#xE739;" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Loaded="MarkdownTextBlock_Loaded"
+                        TextWrapping="Wrap" />
+                </Grid>
+                <Border
+                    Padding="12,4"
+                    BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                    BorderThickness="3,0,0,0"
+                    Visibility="{x:Bind IsQuote}">
+                    <TextBlock
+                        FontStyle="Italic"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Loaded="MarkdownTextBlock_Loaded"
+                        TextWrapping="Wrap" />
+                </Border>
+                <Border
+                    Padding="12"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                    Visibility="{x:Bind IsTable}">
+                    <TextBlock
+                        IsTextSelectionEnabled="True"
+                        Style="{StaticResource CodeTextBlockStyle}"
+                        Text="{x:Bind Text}"
+                        TextWrapping="NoWrap" />
+                </Border>
+                <Border
+                    Padding="12"
+                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                    CornerRadius="{StaticResource ControlCornerRadius}"
+                    Visibility="{x:Bind IsCode}">
+                    <TextBlock
+                        IsTextSelectionEnabled="True"
+                        Style="{StaticResource CodeTextBlockStyle}"
+                        Text="{x:Bind Text}"
+                        TextWrapping="Wrap" />
+                </Border>
+                <Border
+                    Height="1"
+                    Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                    Visibility="{x:Bind IsHorizontalRule}" />
+                <RichTextBlock
+                    IsTextSelectionEnabled="True"
+                    Loaded="MarkdownRichTextBlock_Loaded"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind IsParagraph}" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="MarkdownFileBlockTemplate" x:DataType="vm:MarkdownBlockViewModel">
+            <Grid
+                Padding="8,4"
+                ColumnSpacing="12"
+                RowSpacing="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="56" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Border
+                    Grid.ColumnSpan="3"
+                    Grid.RowSpan="2"
+                    Background="{ThemeResource AddedDiffLineBackgroundBrush}"
+                    BorderBrush="{ThemeResource AddedDiffLineStrokeBrush}"
+                    BorderThickness="3,0,0,0"
+                    Visibility="{x:Bind IsAdded}" />
+                <Border
+                    Grid.ColumnSpan="3"
+                    Grid.RowSpan="2"
+                    Background="{ThemeResource DeletedDiffLineBackgroundBrush}"
+                    BorderBrush="{ThemeResource DeletedDiffLineStrokeBrush}"
+                    BorderThickness="3,0,0,0"
+                    Visibility="{x:Bind IsDeleted}" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind LineLabel}" />
+                <ContentControl
+                    Grid.Column="1"
+                    Content="{x:Bind}"
+                    ContentTemplate="{StaticResource MarkdownBodyTemplate}"
+                    HorizontalContentAlignment="Stretch" />
+                <Button
+                    x:Uid="MarkdownBlockCommentButton"
+                    Grid.Column="2"
+                    Command="{x:Bind CommentCommand}"
+                    Padding="4"
+                    Style="{StaticResource SubtleButtonStyle}"
+                    Visibility="{x:Bind CanComment}">
+                    <FontIcon Glyph="&#xE8BD;" />
+                </Button>
+                <ItemsControl
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="2"
+                    HorizontalContentAlignment="Stretch"
+                    ItemTemplate="{StaticResource InlineCommentBalloonTemplate}"
+                    ItemsSource="{x:Bind Comments, Mode=OneWay}"
+                    Visibility="{x:Bind HasComments, Mode=OneWay}" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <NavigationView
+            x:Name="ReviewNavigationView"
+            x:Uid="ReviewNavigationView"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            MenuItemsSource="{x:Bind ViewModel.OpenReviews, Mode=OneWay}"
+            OpenPaneLength="240"
+            PaneDisplayMode="{x:Bind ViewModel.NavigationPaneDisplayMode, Mode=OneWay}"
+            CompactModeThresholdWidth="720"
+            ExpandedModeThresholdWidth="1200"
+            ItemInvoked="ReviewNavigationView_ItemInvoked"
+            SelectionChanged="ReviewNavigationView_SelectionChanged">
+        <NavigationView.MenuItemTemplate>
+            <DataTemplate x:DataType="vm:ReviewSessionViewModel">
+                <Grid
+                    AutomationProperties.Name="{x:Bind NavigationPrimaryTitle, Mode=OneWay}"
+                    ToolTipService.ToolTip="{x:Bind NavigationTooltip, Mode=OneWay}"
+                    Padding="4,0"
+                    ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon
+                        FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                        FontSize="16"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE8A5;"
+                        VerticalAlignment="Center" />
+                    <StackPanel
+                        Grid.Column="1"
+                        Spacing="0"
+                        VerticalAlignment="Center">
+                        <TextBlock
+                            Text="{x:Bind NavigationPrimaryTitle, Mode=OneWay}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind NavigationSecondaryTitle, Mode=OneWay}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap" />
+                    </StackPanel>
+                    <Border
+                        Grid.Column="2"
+                        Padding="6,2"
+                        Background="{ThemeResource AccentFillColorDefaultBrush}"
+                        CornerRadius="{StaticResource ControlCornerRadius}"
+                        Visibility="{x:Bind HasNewIteration, Mode=OneWay}">
+                        <TextBlock
+                            Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind NewIterationLabel, Mode=OneWay}" />
+                    </Border>
+                </Grid>
+            </DataTemplate>
+        </NavigationView.MenuItemTemplate>
+        <NavigationView.MenuItemContainerStyle>
+            <Style TargetType="NavigationViewItem">
+                <Setter Property="Height" Value="48" />
+                <Setter Property="MinHeight" Value="48" />
+                <Setter Property="MaxHeight" Value="48" />
+                <Setter Property="Padding" Value="8,0" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+        </NavigationView.MenuItemContainerStyle>
+        <NavigationView.PaneFooter>
+            <StackPanel Margin="4,0" Spacing="4">
+                <Button
+                    x:Uid="OpenReviewActivityButton"
+                    Click="OpenReviewActivityButton_Click"
+                    HorizontalAlignment="Left"
+                    HorizontalContentAlignment="Left"
+                    MinWidth="48"
+                    Style="{StaticResource SubtleButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE9D9;" />
+                        <TextBlock
+                            x:Uid="OpenReviewActivityLabel"
+                            Visibility="{x:Bind ViewModel.IsNormalReviewLayout, Mode=OneWay}" />
+                    </StackPanel>
+                </Button>
+                <StackPanel
+                    Visibility="{x:Bind ViewModel.HasPastReviews, Mode=OneWay}">
+                    <NavigationViewItemSeparator />
+                    <Expander
+                        x:Uid="ReviewedPullRequestsExpander"
+                        HorizontalContentAlignment="Stretch">
+                        <ListView
+                            MaxHeight="280"
+                            ItemsSource="{x:Bind ViewModel.PastReviews, Mode=OneWay}"
+                            SelectionChanged="ReviewedPullRequests_SelectionChanged"
+                            SelectionMode="Single">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ReviewSessionViewModel">
+                                    <Grid
+                                        Padding="8,4"
+                                        RowSpacing="2">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock
+                                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                                            Text="{x:Bind NavigationTitle, Mode=OneWay}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Row="1"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind NavigationSubtitle, Mode=OneWay}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Grid.Row="2"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind ReviewStatusLabel, Mode=OneWay}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Expander>
+                </StackPanel>
+            </StackPanel>
+        </NavigationView.PaneFooter>
+
+        <NavigationView.Content>
+            <Grid>
+                <Grid x:Name="ReviewWorkspace">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid
+                    x:Name="OpenReviewHeader"
+                    Visibility="{x:Bind ViewModel.IsReviewPanelVisible, Mode=OneWay}"
+                    Padding="24,16"
+                    ColumnSpacing="12"
+                    BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,0,1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="280" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox
+                        x:Uid="PullRequestUrlTextBox"
+                        x:Name="PullRequestUrlTextBox"
+                        Grid.Column="0"
+                        KeyDown="PullRequestUrlTextBox_KeyDown"
+                        Text="{x:Bind ViewModel.PullRequestUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Grid
+                        Grid.Column="1"
+                        ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox
+                            x:Uid="LocalRepositoryTextBox"
+                            Text="{x:Bind ViewModel.LocalRepositoryPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button
+                            x:Uid="BrowseRepositoryButton"
+                            Grid.Column="1"
+                            Click="BrowseRepositoryButton_Click"
+                            VerticalAlignment="Bottom">
+                            <FontIcon Glyph="&#xE8B7;" />
+                        </Button>
+                    </Grid>
+                    <StackPanel
+                        Grid.Column="2"
+                        VerticalAlignment="Bottom"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <ProgressRing
+                            Width="20"
+                            Height="20"
+                            IsActive="{x:Bind ViewModel.IsOpening, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.IsOpening, Mode=OneWay}" />
+                        <Button
+                            x:Uid="OpenReviewButton"
+                            Command="{x:Bind ViewModel.OpenReviewCommand}"
+                            Style="{StaticResource AccentButtonStyle}" />
+                        <Button
+                            x:Uid="CancelOpenReviewButton"
+                            Command="{x:Bind ViewModel.HideOpenReviewPanelCommand}"
+                            Visibility="{x:Bind ViewModel.ActiveReview.HasActiveReview, Mode=OneWay}" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid
+                    x:Name="ReviewStatusHeader"
+                    Visibility="{x:Bind ViewModel.IsReviewAlertVisible, Mode=OneWay}"
+                    Grid.Row="1"
+                    Padding="24,8"
+                    ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Spacing="4">
+                        <InfoBar
+                            x:Uid="AuthenticationInfoBar"
+                            IsOpen="{x:Bind ViewModel.AuthenticationRequired, Mode=OneWay}"
+                            Message="{x:Bind ViewModel.AuthenticationMessage, Mode=OneWay}"
+                            Severity="Warning">
+                            <InfoBar.ActionButton>
+                                <Button
+                                    x:Uid="AuthenticateButton"
+                                    Command="{x:Bind ViewModel.AuthenticateAndRetryCommand}"
+                                    IsEnabled="{x:Bind ViewModel.CanAuthenticate, Mode=OneWay}" />
+                            </InfoBar.ActionButton>
+                        </InfoBar>
+                        <InfoBar
+                            Closed="GlobalErrorInfoBar_Closed"
+                            IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+                            Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+                            Severity="Error" />
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid
+                    Grid.Row="2"
+                    Visibility="{x:Bind ViewModel.ActiveReview.HasActiveReview, Mode=OneWay}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{x:Bind ViewModel.ChangedFilesPaneWidth, Mode=OneWay}" />
+                        <ColumnDefinition Width="{x:Bind ViewModel.PaneSplitterWidth, Mode=OneWay}" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="{x:Bind ViewModel.PaneSplitterWidth, Mode=OneWay}" />
+                        <ColumnDefinition Width="{x:Bind ViewModel.ReviewInspectorPaneWidth, Mode=OneWay}" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid
+                        x:Name="ChangedFilesPane"
+                        Visibility="{x:Bind ViewModel.IsNormalReviewLayout, Mode=OneWay}"
+                        Padding="16,16,12,16"
+                        RowSpacing="12"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="0,0,1,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                AutomationProperties.HeadingLevel="Level2"
+                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                Text="{x:Bind ViewModel.ActiveReview.ChangedFilesSummary, Mode=OneWay}"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap"
+                                VerticalAlignment="Center" />
+                            <DropDownButton
+                                x:Uid="ReviewActionsButton"
+                                Grid.Column="1"
+                                Padding="8,4">
+                                <FontIcon Glyph="&#xE712;" />
+                                <DropDownButton.Flyout>
+                                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                        <MenuFlyoutItem
+                                            x:Uid="ArchiveReviewMenuItem"
+                                            Command="{x:Bind ViewModel.CloseReviewCommand}"
+                                            Visibility="{x:Bind ViewModel.ActiveReview.IsOpen, Mode=OneWay}" />
+                                        <MenuFlyoutSeparator />
+                                        <MenuFlyoutItem
+                                            x:Uid="CompleteReviewMenuItem"
+                                            Click="CompleteReviewAction_Click" />
+                                    </MenuFlyout>
+                                </DropDownButton.Flyout>
+                            </DropDownButton>
+                        </Grid>
+
+                        <TextBox
+                            x:Uid="ChangedFileFilterTextBox"
+                            Grid.Row="1"
+                            Text="{x:Bind ViewModel.ActiveReview.FileFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TreeView
+                            Grid.Row="2"
+                            ItemsSource="{x:Bind ViewModel.ActiveReview.FileRoots, Mode=OneWay}"
+                            SelectedItem="{x:Bind ViewModel.ActiveReview.SelectedTreeNode, Mode=OneWay}"
+                            SelectionChanged="FileTreeView_SelectionChanged">
+                            <TreeView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FileTreeNodeViewModel">
+                                    <TreeViewItem
+                                        AutomationProperties.Name="{x:Bind AccessibilityName}"
+                                        IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
+                                        ToolTipService.ToolTip="{x:Bind Path}"
+                                        ItemsSource="{x:Bind Children}">
+                                        <Grid
+                                            Padding="0,4,8,4"
+                                            ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="20" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon
+                                                FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                                Glyph="{x:Bind Glyph}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{x:Bind Name}"
+                                                TextTrimming="CharacterEllipsis"
+                                                Visibility="{x:Bind IsUnviewed, Mode=OneWay}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Text="{x:Bind Name}"
+                                                TextTrimming="CharacterEllipsis"
+                                                Visibility="{x:Bind IsViewed, Mode=OneWay}" />
+                                            <FontIcon
+                                                Grid.Column="2"
+                                                HorizontalAlignment="Right"
+                                                Glyph="&#xE73E;"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Visibility="{x:Bind IsViewed, Mode=OneWay}" />
+                                            <Grid Grid.Column="3" Visibility="{x:Bind IsFile}">
+                                                <TextBlock
+                                                    Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Text="{x:Bind Status}"
+                                                    Visibility="{x:Bind IsAddedStatus}" />
+                                                <TextBlock
+                                                    Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Text="{x:Bind Status}"
+                                                    Visibility="{x:Bind IsModifiedStatus}" />
+                                                <TextBlock
+                                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Text="{x:Bind Status}"
+                                                    Visibility="{x:Bind IsDeletedStatus}" />
+                                                <TextBlock
+                                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Text="{x:Bind Status}"
+                                                    Visibility="{x:Bind IsOtherStatus}" />
+                                            </Grid>
+                                        </Grid>
+                                    </TreeViewItem>
+                                </DataTemplate>
+                            </TreeView.ItemTemplate>
+                        </TreeView>
+                    </Grid>
+
+                    <controls:PaneSplitter
+                        x:Uid="ChangedFilesPaneSplitter"
+                        Grid.Column="1"
+                        Loaded="ChangedFilesSplitter_Loaded"
+                        KeyDown="ChangedFilesSplitter_KeyDown"
+                        Style="{StaticResource PaneSplitterStyle}"
+                        Unloaded="ChangedFilesSplitter_Unloaded"
+                        Visibility="{x:Bind ViewModel.IsNormalReviewLayout, Mode=OneWay}" />
+
+                    <Grid
+                        Grid.Column="2"
+                        MinWidth="0"
+                        RowSpacing="12"
+                        Padding="16,16,16,12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid
+                            ColumnSpacing="12"
+                            Padding="0,0,0,8"
+                            RowSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="2" />
+                            </Grid.RowDefinitions>
+                            <StackPanel
+                                Spacing="4"
+                                VerticalAlignment="Center">
+                                <TextBlock
+                                    AutomationProperties.HeadingLevel="Level1"
+                                    Style="{StaticResource SubtitleTextBlockStyle}"
+                                    Text="{x:Bind ViewModel.ActiveReview.NavigationPrimaryTitle, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind ViewModel.ActiveReview.WorkspaceSubtitle, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <TextBlock
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{x:Bind ViewModel.ActiveReview.WorkspaceStatus, Mode=OneWay}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <Button
+                                    x:Uid="BackToDiffButton"
+                                    Command="{x:Bind ViewModel.ActiveReview.ReturnToDiffCommand, Mode=OneWay}"
+                                    HorizontalAlignment="Left"
+                                    Padding="8,4"
+                                    Visibility="{x:Bind ViewModel.ActiveReview.IsViewingDefinition, Mode=OneWay}" />
+                            </StackPanel>
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Spacing="8">
+                                <Button
+                                    x:Uid="ViewPullRequestDescriptionButton"
+                                    Click="ViewPullRequestDescriptionButton_Click"
+                                    IsEnabled="{x:Bind ViewModel.ActiveReview.HasDescription, Mode=OneWay}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE8A4;" />
+                                        <TextBlock x:Uid="ViewPullRequestDescriptionLabel" />
+                                    </StackPanel>
+                                </Button>
+                                <Button
+                                    x:Uid="ExpandCodeViewButton"
+                                    Click="ExpandCodeViewButton_Click"
+                                    ToolTipService.ToolTip="{x:Bind ViewModel.CodeViewToggleLabel, Mode=OneWay}">
+                                    <FontIcon Glyph="{x:Bind ViewModel.CodeViewToggleGlyph, Mode=OneWay}" />
+                                </Button>
+                            </StackPanel>
+                            <CommandBar
+                                x:Name="ReviewToolbar"
+                                Grid.Row="1"
+                                Grid.ColumnSpan="2"
+                                DefaultLabelPosition="Collapsed"
+                                IsDynamicOverflowEnabled="True"
+                                OverflowButtonVisibility="Visible">
+                                <CommandBar.PrimaryCommands>
+                                    <AppBarElementContainer>
+                                    <ComboBox
+                                        x:Uid="IterationComboBox"
+                                        x:Name="IterationComboBox"
+                                        ItemsSource="{x:Bind ViewModel.ActiveReview.Iterations, Mode=OneWay}"
+                                        SelectedItem="{x:Bind ViewModel.ActiveReview.SelectedIteration, Mode=OneWay}"
+                                        SelectionChanged="IterationComboBox_SelectionChanged" />
+                                    </AppBarElementContainer>
+                                    <AppBarElementContainer>
+                                    <ComboBox
+                                        x:Uid="DiffLayoutComboBox"
+                                        SelectedIndex="{x:Bind ViewModel.ActiveReview.DiffLayoutModeIndex, Mode=TwoWay}">
+                                        <ComboBoxItem x:Uid="InlineDiffLayoutItem" />
+                                        <ComboBoxItem x:Uid="SideBySideDiffLayoutItem" />
+                                    </ComboBox>
+                                    </AppBarElementContainer>
+                                    <AppBarElementContainer>
+                                    <ComboBox
+                                        x:Uid="DiffContextComboBox"
+                                        x:Name="DiffContextComboBox"
+                                        ItemsSource="{x:Bind ViewModel.ActiveReview.ContextOptions}"
+                                        SelectedItem="{x:Bind ViewModel.ActiveReview.ContextLines, Mode=TwoWay}"
+                                        SelectionChanged="DiffContextComboBox_SelectionChanged"
+                                        Visibility="{x:Bind ViewModel.ActiveReview.IsFolderSelection, Mode=OneWay}" />
+                                    </AppBarElementContainer>
+                                    <AppBarElementContainer>
+                                        <Button
+                                        x:Uid="ToggleMarkdownViewButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.ToggleMarkdownFormatCommand, Mode=OneWay}"
+                                        Content="{x:Bind ViewModel.ActiveReview.MarkdownToggleLabel, Mode=OneWay}"
+                                        Visibility="{x:Bind ViewModel.ActiveReview.IsMarkdownFile, Mode=OneWay}" />
+                                    </AppBarElementContainer>
+                                    <AppBarElementContainer IsCompact="False">
+                                        <Grid ColumnSpacing="4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="180" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox
+                                                x:Uid="FileSearchTextBox"
+                                                x:Name="FileSearchTextBox"
+                                                IsEnabled="{x:Bind ViewModel.ActiveReview.CanSearchFile, Mode=OneWay}"
+                                                Text="{x:Bind ViewModel.ActiveReview.SearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind ViewModel.ActiveReview.SearchPosition, Mode=OneWay}"
+                                                AutomationProperties.LiveSetting="Polite"
+                                                Visibility="{x:Bind ViewModel.ActiveReview.HasSearchQuery, Mode=OneWay}" />
+                                        </Grid>
+                                    </AppBarElementContainer>
+                                    <AppBarButton
+                                        x:Uid="PreviousSearchResultButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.PreviousSearchResultCommand, Mode=OneWay}"
+                                        IsEnabled="{x:Bind ViewModel.ActiveReview.CanMoveSearchPrevious, Mode=OneWay}">
+                                        <AppBarButton.Icon>
+                                            <FontIcon Glyph="&#xE70E;" />
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
+                                    <AppBarButton
+                                        x:Uid="NextSearchResultButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.NextSearchResultCommand, Mode=OneWay}"
+                                        IsEnabled="{x:Bind ViewModel.ActiveReview.CanMoveSearchNext, Mode=OneWay}">
+                                        <AppBarButton.Icon>
+                                            <FontIcon Glyph="&#xE70D;" />
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
+                                    <AppBarButton
+                                        x:Uid="PreviousChangeButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.PreviousChangeCommand, Mode=OneWay}">
+                                        <AppBarButton.Icon>
+                                            <FontIcon Glyph="&#xE72B;" />
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
+                                    <AppBarButton
+                                        x:Uid="NextChangeButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.NextChangeCommand, Mode=OneWay}">
+                                        <AppBarButton.Icon>
+                                            <FontIcon Glyph="&#xE72A;" />
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
+                                </CommandBar.PrimaryCommands>
+                                <CommandBar.SecondaryCommands>
+                                    <AppBarButton
+                                        x:Uid="CollapseAllFunctionsButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.CollapseAllFunctionsCommand, Mode=OneWay}"
+                                        Visibility="{x:Bind ViewModel.ActiveReview.HasFunctionFolds, Mode=OneWay}">
+                                        <AppBarButton.Icon>
+                                            <FontIcon Glyph="&#xE70D;" />
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
+                                    <AppBarButton
+                                        x:Uid="ExpandAllFunctionsButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.ExpandAllFunctionsCommand, Mode=OneWay}"
+                                        Visibility="{x:Bind ViewModel.ActiveReview.HasFunctionFolds, Mode=OneWay}">
+                                        <AppBarButton.Icon>
+                                            <FontIcon Glyph="&#xE70E;" />
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
+                                    <AppBarSeparator />
+                                    <AppBarButton
+                                        x:Uid="MarkReviewedButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.MarkReviewedCommand, Mode=OneWay}">
+                                        <AppBarButton.Icon>
+                                            <FontIcon Glyph="&#xE73E;" />
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
+                                    <AppBarButton
+                                        x:Uid="RefreshReviewButton"
+                                        Command="{x:Bind ViewModel.ActiveReview.RefreshCommand, Mode=OneWay}">
+                                        <AppBarButton.Icon>
+                                            <FontIcon Glyph="&#xE72C;" />
+                                        </AppBarButton.Icon>
+                                    </AppBarButton>
+                                </CommandBar.SecondaryCommands>
+                            </CommandBar>
+                            <ProgressBar
+                                Grid.Row="2"
+                                Grid.ColumnSpan="2"
+                                Height="2"
+                                IsIndeterminate="{x:Bind ViewModel.ActiveReview.IsBusy, Mode=OneWay}"
+                                Visibility="{x:Bind ViewModel.ActiveReview.IsBusy, Mode=OneWay}" />
+                        </Grid>
+
+                        <Grid
+                            Grid.Row="1"
+                            HorizontalAlignment="Stretch"
+                            Visibility="{x:Bind ViewModel.ActiveReview.HasActiveReview, Mode=OneWay}">
+                            <ListView
+                                x:Name="InlineDiffListView"
+                                HorizontalContentAlignment="Stretch"
+                                IsItemClickEnabled="False"
+                                ItemContainerStyle="{StaticResource DiffListViewItemStyle}"
+                                ItemTemplate="{StaticResource DiffLineTemplate}"
+                                ItemsSource="{x:Bind ViewModel.ActiveReview.VisibleDiffLines, Mode=OneWay}"
+                                Margin="0,4,24,0"
+                                ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                ScrollViewer.HorizontalScrollMode="Enabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                SelectionMode="None"
+                                TabNavigation="Once"
+                                Visibility="{x:Bind ViewModel.ActiveReview.IsInlineRawCodeVisible, Mode=OneWay}" />
+                            <ListView
+                                x:Name="SideBySideDiffListView"
+                                HorizontalContentAlignment="Stretch"
+                                IsItemClickEnabled="False"
+                                ItemContainerStyle="{StaticResource DiffListViewItemStyle}"
+                                ItemsSource="{x:Bind ViewModel.ActiveReview.DiffRows, Mode=OneWay}"
+                                Margin="0,4,24,0"
+                                ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                ScrollViewer.HorizontalScrollMode="Enabled"
+                                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                SelectionMode="None"
+                                TabNavigation="Once"
+                                Visibility="{x:Bind ViewModel.ActiveReview.IsSideBySideRawCodeVisible, Mode=OneWay}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:DiffRowViewModel">
+                                        <Grid HorizontalAlignment="Stretch">
+                                            <Border
+                                                Padding="12,4"
+                                                Background="{ThemeResource HunkDiffLineBackgroundBrush}"
+                                                CornerRadius="{StaticResource ControlCornerRadius}"
+                                                Visibility="{x:Bind IsHunk}">
+                                                <TextBlock
+                                                    Style="{StaticResource CodeTextBlockStyle}"
+                                                    Text="{x:Bind HunkText}"
+                                                    TextWrapping="NoWrap" />
+                                            </Border>
+                                            <Grid
+                                                HorizontalAlignment="Stretch"
+                                                Visibility="{x:Bind IsSideBySide}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="1" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <ContentControl
+                                                    Content="{x:Bind Left}"
+                                                    ContentTemplate="{StaticResource DiffLineTemplate}"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    Visibility="{x:Bind HasLeft}" />
+                                                <Grid
+                                                    Background="{ThemeResource LayerFillColorAltBrush}"
+                                                    Visibility="{x:Bind IsLeftEmpty}">
+                                                    <TextBlock
+                                                        HorizontalAlignment="Center"
+                                                        Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                                        Text="∕"
+                                                        VerticalAlignment="Center" />
+                                                </Grid>
+                                                <Border
+                                                    Grid.Column="1"
+                                                    Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+                                                <ContentControl
+                                                    Grid.Column="2"
+                                                    Content="{x:Bind Right}"
+                                                    ContentTemplate="{StaticResource DiffLineTemplate}"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    Visibility="{x:Bind HasRight}" />
+                                                <Grid
+                                                    Grid.Column="2"
+                                                    Background="{ThemeResource LayerFillColorAltBrush}"
+                                                    Visibility="{x:Bind IsRightEmpty}">
+                                                    <TextBlock
+                                                        HorizontalAlignment="Center"
+                                                        Foreground="{ThemeResource TextFillColorDisabledBrush}"
+                                                        Text="∕"
+                                                        VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <ScrollViewer
+                                x:Name="FormattedMarkdownViewer"
+                                HorizontalContentAlignment="Stretch"
+                                HorizontalScrollBarVisibility="Disabled"
+                                VerticalScrollBarVisibility="Auto"
+                                Visibility="{x:Bind ViewModel.ActiveReview.IsFormattedMarkdownVisible, Mode=OneWay}">
+                                <ItemsControl
+                                    HorizontalContentAlignment="Stretch"
+                                    ItemTemplate="{StaticResource MarkdownFileBlockTemplate}"
+                                    ItemsSource="{x:Bind ViewModel.ActiveReview.MarkdownBlocks, Mode=OneWay}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Spacing="12" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                            </ScrollViewer>
+                            <Canvas
+                                x:Name="DiffMarkerCanvas"
+                                Width="24"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Stretch"
+                                AutomationProperties.Name="Navigate changed-line overview"
+                                Background="Transparent"
+                                PointerPressed="DiffMarkerCanvas_PointerPressed"
+                                SizeChanged="DiffMarkerCanvas_SizeChanged"
+                                ToolTipService.ToolTip="Click near a tick to jump to a changed line or comment"
+                                Visibility="{x:Bind ViewModel.ActiveReview.AreDiffMarkersVisible, Mode=OneWay}" />
+                        </Grid>
+                    </Grid>
+
+                    <controls:PaneSplitter
+                        x:Uid="ReviewInspectorPaneSplitter"
+                        Grid.Column="3"
+                        Loaded="ReviewInspectorSplitter_Loaded"
+                        KeyDown="ReviewInspectorSplitter_KeyDown"
+                        Style="{StaticResource PaneSplitterStyle}"
+                        Unloaded="ReviewInspectorSplitter_Unloaded"
+                        Visibility="{x:Bind ViewModel.IsNormalReviewLayout, Mode=OneWay}" />
+
+                    <Grid
+                        x:Name="ReviewInspectorPane"
+                        Visibility="{x:Bind ViewModel.IsNormalReviewLayout, Mode=OneWay}"
+                        Grid.Column="4"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="1,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid
+                            Padding="12,8,12,0"
+                            ColumnSpacing="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ToggleButton
+                                x:Name="CommentsInspectorTab"
+                                x:Uid="CommentsInspectorTab"
+                                Click="InspectorTab_Click"
+                                HorizontalAlignment="Stretch"
+                                IsChecked="{x:Bind ViewModel.ActiveReview.IsCommentsInspectorVisible, Mode=OneWay}" />
+                            <ToggleButton
+                                x:Name="OverviewInspectorTab"
+                                x:Uid="OverviewInspectorTab"
+                                Grid.Column="1"
+                                Click="InspectorTab_Click"
+                                HorizontalAlignment="Stretch"
+                                IsChecked="{x:Bind ViewModel.ActiveReview.IsOverviewInspectorVisible, Mode=OneWay}" />
+                            <ToggleButton
+                                x:Name="NotesInspectorTab"
+                                x:Uid="NotesInspectorTab"
+                                Grid.Column="2"
+                                Click="InspectorTab_Click"
+                                HorizontalAlignment="Stretch"
+                                IsChecked="{x:Bind ViewModel.ActiveReview.IsNotesInspectorVisible, Mode=OneWay}" />
+                        </Grid>
+                        <ScrollViewer
+                            Grid.Row="1"
+                            HorizontalScrollBarVisibility="Disabled"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalScrollBarVisibility="Auto">
+                            <StackPanel Padding="16">
+                            <InfoBar
+                                Margin="0,0,0,12"
+                                Closed="ReviewErrorInfoBar_Closed"
+                                IsOpen="{x:Bind ViewModel.ActiveReview.HasError, Mode=OneWay}"
+                                Message="{x:Bind ViewModel.ActiveReview.ErrorMessage, Mode=OneWay}"
+                                Severity="Error" />
+
+                            <StackPanel
+                                Margin="0,0,0,16"
+                                Spacing="4"
+                                Visibility="{x:Bind ViewModel.ActiveReview.IsOverviewInspectorVisible, Mode=OneWay}">
+                                <TextBlock
+                                    AutomationProperties.HeadingLevel="Level2"
+                                    x:Uid="ReviewHeader"
+                                    Style="{StaticResource SubtitleTextBlockStyle}" />
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{x:Bind ViewModel.ActiveReview.ProviderLabel, Mode=OneWay}" />
+                                <HyperlinkButton
+                                    Content="{x:Bind ViewModel.ActiveReview.NavigationTitle, Mode=OneWay}"
+                                    NavigateUri="{x:Bind ViewModel.ActiveReview.PullRequestUri, Mode=OneWay}" />
+                                <TextBlock
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{x:Bind ViewModel.ActiveReview.RepositorySourceLabel, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    IsTextSelectionEnabled="True"
+                                    Text="{x:Bind ViewModel.ActiveReview.RepositoryLocation, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel
+                                Margin="0,0,0,16"
+                                Spacing="8"
+                                Visibility="{x:Bind ViewModel.ActiveReview.IsNotesInspectorVisible, Mode=OneWay}">
+                                <TextBlock
+                                    AutomationProperties.HeadingLevel="Level2"
+                                    x:Uid="NotesHeader"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBox
+                                    x:Uid="NotesTextBox"
+                                    x:Name="NotesTextBox"
+                                    AcceptsReturn="True"
+                                    MinHeight="120"
+                                    Text="{x:Bind ViewModel.ActiveReview.Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind ViewModel.ActiveReview.NotesSaveStatus, Mode=OneWay}" />
+                            </StackPanel>
+
+                            <StackPanel
+                                Margin="0,0,0,16"
+                                Spacing="8"
+                                Visibility="{x:Bind ViewModel.ActiveReview.IsCommentsInspectorVisible, Mode=OneWay}">
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        AutomationProperties.HeadingLevel="Level2"
+                                        x:Uid="CommentsHeader"
+                                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                                        VerticalAlignment="Center" />
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Spacing="4">
+                                        <Button
+                                            x:Uid="CollapseAllCommentsButton"
+                                            Command="{x:Bind ViewModel.ActiveReview.CollapseAllCommentsCommand, Mode=OneWay}"
+                                            Padding="4"
+                                            Style="{StaticResource SubtleButtonStyle}">
+                                            <FontIcon Glyph="&#xE70D;" />
+                                        </Button>
+                                        <Button
+                                            x:Uid="ExpandAllCommentsButton"
+                                            Command="{x:Bind ViewModel.ActiveReview.ExpandAllCommentsCommand, Mode=OneWay}"
+                                            Padding="4"
+                                            Style="{StaticResource SubtleButtonStyle}">
+                                            <FontIcon Glyph="&#xE70E;" />
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <ToggleButton
+                                        x:Uid="CurrentFileCommentsFilter"
+                                        IsChecked="{x:Bind ViewModel.ActiveReview.ShowOnlyCurrentFileComments, Mode=TwoWay}" />
+                                    <ToggleButton
+                                        x:Uid="HideBotCommentsFilter"
+                                        IsChecked="{x:Bind ViewModel.ActiveReview.HideBotComments, Mode=TwoWay}" />
+                                </StackPanel>
+                                <TextBlock
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{x:Bind ViewModel.ActiveReview.SelectedLineDescription, Mode=OneWay}" />
+                                <TextBlock
+                                    x:Uid="SelectedCodeHeader"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Visibility="{x:Bind ViewModel.ActiveReview.HasSelectedCodeFragment, Mode=OneWay}" />
+                                <TextBlock
+                                    Style="{StaticResource CodeTextBlockStyle}"
+                                    Text="{x:Bind ViewModel.ActiveReview.SelectedCodeFragment, Mode=OneWay}"
+                                    TextWrapping="Wrap"
+                                    Visibility="{x:Bind ViewModel.ActiveReview.HasSelectedCodeFragment, Mode=OneWay}" />
+                                <TextBox
+                                    x:Uid="CommentTextBox"
+                                    x:Name="DraftCommentTextBox"
+                                    AcceptsReturn="True"
+                                    MinHeight="96"
+                                    Text="{x:Bind ViewModel.ActiveReview.DraftComment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextWrapping="Wrap" />
+                                <TextBox
+                                    x:Uid="SuggestionTextBox"
+                                    x:Name="DraftSuggestionTextBox"
+                                    AcceptsReturn="True"
+                                    MinHeight="72"
+                                    Text="{x:Bind ViewModel.ActiveReview.DraftSuggestion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    TextWrapping="Wrap" />
+                                <Button
+                                    x:Uid="QueueCommentButton"
+                                    Command="{x:Bind ViewModel.ActiveReview.AddCommentCommand, Mode=OneWay}"
+                                    IsEnabled="{x:Bind ViewModel.ActiveReview.CanSaveCommentLocally, Mode=OneWay}" />
+
+                                <ItemsControl
+                                    HorizontalContentAlignment="Stretch"
+                                    ItemTemplate="{StaticResource ReviewCommentCardTemplate}"
+                                    ItemsSource="{x:Bind ViewModel.ActiveReview.VisibleComments, Mode=OneWay}" />
+                            </StackPanel>
+
+                            <StackPanel
+                                Margin="0,0,0,16"
+                                Spacing="8"
+                                Visibility="{x:Bind ViewModel.ActiveReview.IsCommentsInspectorVisible, Mode=OneWay}">
+                                <TextBlock
+                                    AutomationProperties.HeadingLevel="Level2"
+                                    x:Uid="ExistingCommentsHeader"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <ItemsControl
+                                    HorizontalContentAlignment="Stretch"
+                                    ItemTemplate="{StaticResource ReviewCommentCardTemplate}"
+                                    ItemsSource="{x:Bind ViewModel.ActiveReview.VisibleRemoteComments, Mode=OneWay}" />
+                            </StackPanel>
+
+                            <TextBlock
+                                AutomationProperties.LiveSetting="Polite"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind ViewModel.ActiveReview.StatusMessage, Mode=OneWay}"
+                                TextWrapping="Wrap" />
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid
+                            Grid.Row="2"
+                            Padding="12"
+                            ColumnSpacing="8"
+                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            BorderThickness="0,1,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind ViewModel.ActiveReview.PendingCommentSummary, Mode=OneWay}"
+                                Visibility="{x:Bind ViewModel.ActiveReview.HasPendingComments, Mode=OneWay}" />
+                            <Button
+                                x:Uid="PublishCommentsButton"
+                                Grid.Column="1"
+                                Command="{x:Bind ViewModel.ActiveReview.PublishCommentsCommand, Mode=OneWay}"
+                                Content="{x:Bind ViewModel.ActiveReview.PublishButtonLabel, Mode=OneWay}"
+                                IsEnabled="{x:Bind ViewModel.ActiveReview.CanPublishPendingComments, Mode=OneWay}"
+                                Style="{StaticResource AccentButtonStyle}" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+                <StackPanel
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12"
+                    Visibility="{x:Bind ViewModel.ActiveReview.IsEmpty, Mode=OneWay}">
+                    <FontIcon
+                        FontSize="48"
+                        Glyph="&#xE8C8;" />
+                    <TextBlock
+                        x:Uid="EmptyReviewTitle"
+                        HorizontalAlignment="Center"
+                        Style="{StaticResource SubtitleTextBlockStyle}" />
+                    <TextBlock
+                        x:Uid="EmptyReviewDescription"
+                        HorizontalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                </Grid>
+                <local:ReviewActivityPage
+                    x:Name="EmbeddedReviewActivityPage"
+                    BackRequested="ReviewActivityPage_BackRequested"
+                    Visibility="Collapsed" />
+            </Grid>
+        </NavigationView.Content>
+        </NavigationView>
+        <ContentDialog
+            x:Name="OpenReviewDialog"
+            x:Uid="OpenReviewDialog"
+            DefaultButton="Primary"
+            PrimaryButtonClick="OpenReviewDialog_PrimaryButtonClick"
+            IsPrimaryButtonEnabled="{x:Bind ViewModel.CanOpenReview, Mode=OneWay}">
+            <StackPanel MinWidth="600" Spacing="12">
+                <TextBox
+                    x:Uid="OpenReviewDialogUrlTextBox"
+                    x:Name="OpenReviewDialogUrlTextBox"
+                    KeyDown="PullRequestUrlTextBox_KeyDown"
+                    Text="{x:Bind ViewModel.PullRequestUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Uid="OpenReviewDialogRepositoryTextBox"
+                        Text="{x:Bind ViewModel.LocalRepositoryPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button
+                        x:Uid="OpenReviewDialogBrowseButton"
+                        Grid.Column="1"
+                        Click="BrowseRepositoryButton_Click"
+                        VerticalAlignment="Bottom">
+                        <FontIcon Glyph="&#xE8B7;" />
+                    </Button>
+                </Grid>
+                <ProgressRing
+                    Width="20"
+                    Height="20"
+                    IsActive="{x:Bind ViewModel.IsOpening, Mode=OneWay}"
+                    Visibility="{x:Bind ViewModel.IsOpening, Mode=OneWay}" />
+            </StackPanel>
+        </ContentDialog>
+        <ContentDialog
+            x:Name="DescriptionDialog"
+            x:Uid="DescriptionDialog">
+            <ContentDialog.Resources>
+                <x:Double x:Key="ContentDialogMaxWidth">840</x:Double>
+            </ContentDialog.Resources>
+            <ScrollViewer
+                MaxHeight="640"
+                MaxWidth="760"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <ItemsControl
+                    Padding="0,0,16,0"
+                    HorizontalContentAlignment="Stretch"
+                    ItemTemplate="{StaticResource MarkdownBodyTemplate}"
+                    ItemsSource="{x:Bind ViewModel.ActiveReview.DescriptionMarkdownBlocks, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="12" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </ScrollViewer>
+        </ContentDialog>
+        <ContentDialog
+            x:Name="CompleteReviewDialog"
+            x:Uid="CompleteReviewDialog"
+            DefaultButton="Close"
+            PrimaryButtonClick="CompleteReviewDialog_PrimaryButtonClick"
+            PrimaryButtonStyle="{StaticResource DangerButtonStyle}">
+            <ContentDialog.Resources>
+                <StaticResource x:Key="AccentButtonBackground" ResourceKey="SystemFillColorCriticalBrush" />
+                <StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="SystemFillColorCriticalBrush" />
+                <StaticResource x:Key="AccentButtonBackgroundPressed" ResourceKey="SystemFillColorCriticalBrush" />
+            </ContentDialog.Resources>
+            <TextBlock
+                x:Uid="CompleteReviewConfirmationText"
+                MaxWidth="560"
+                TextWrapping="Wrap" />
+        </ContentDialog>
+        <ContentDialog
+            x:Name="FocusedCommentDialog"
+            x:Uid="FocusedCommentDialog"
+            DefaultButton="Primary"
+            PrimaryButtonClick="FocusedCommentDialog_PrimaryButtonClick"
+            IsPrimaryButtonEnabled="{x:Bind ViewModel.ActiveReview.CanSaveCommentLocally, Mode=OneWay}">
+            <StackPanel Spacing="12" Width="520">
+                <TextBlock
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{x:Bind ViewModel.ActiveReview.SelectedLineDescription, Mode=OneWay}" />
+                <TextBlock
+                    Style="{StaticResource CodeTextBlockStyle}"
+                    Text="{x:Bind ViewModel.ActiveReview.FocusedCodeContext, Mode=OneWay}"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind ViewModel.ActiveReview.HasFocusedCodePreview, Mode=OneWay}" />
+                <TextBox
+                    x:Uid="FocusedCommentTextBox"
+                    AcceptsReturn="True"
+                    MinHeight="120"
+                    Text="{x:Bind ViewModel.ActiveReview.DraftComment, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+                <TextBox
+                    x:Uid="FocusedSuggestionTextBox"
+                    AcceptsReturn="True"
+                    FontFamily="Cascadia Mono"
+                    FontSize="13"
+                    IsSpellCheckEnabled="False"
+                    MinHeight="96"
+                    Text="{x:Bind ViewModel.ActiveReview.DraftSuggestion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="NoWrap">
+                    <TextBox.HeaderTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <TextBlock
+                                Style="{StaticResource BodyTextBlockStyle}"
+                                Text="{x:Bind}" />
+                        </DataTemplate>
+                    </TextBox.HeaderTemplate>
+                </TextBox>
+            </StackPanel>
+        </ContentDialog>
+    </Grid>
+</Page>

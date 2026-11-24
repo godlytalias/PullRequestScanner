@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+  </resheader>
+  <data name="AppTitleBar.Title" xml:space="preserve">
+    <value>PullRequest Scanner</value>
+  </data>
+  <data name="OpenPullRequestTitleButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Open a pull request review</value>
+  </data>
+  <data name="OpenPullRequestTitleLabel.Text" xml:space="preserve">
+    <value>Open PR</value>
+  </data>
+  <data name="OpenReviewDialog.Title" xml:space="preserve">
+    <value>Open pull request</value>
+  </data>
+  <data name="OpenReviewDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Open review</value>
+  </data>
+  <data name="OpenReviewDialog.CloseButtonText" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="OpenReviewDialogUrlTextBox.Header" xml:space="preserve">
+    <value>Pull request URL</value>
+  </data>
+  <data name="OpenReviewDialogUrlTextBox.PlaceholderText" xml:space="preserve">
+    <value>https://github.com/owner/repository/pull/123</value>
+  </data>
+  <data name="OpenReviewDialogRepositoryTextBox.Header" xml:space="preserve">
+    <value>Local repository override (optional)</value>
+  </data>
+  <data name="OpenReviewDialogBrowseButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Browse for a local repository folder</value>
+  </data>
+  <data name="ReviewNavigationView.PaneTitle" xml:space="preserve">
+    <value>Open pull requests</value>
+  </data>
+  <data name="ReviewNavigationView.AutomationProperties.Name" xml:space="preserve">
+    <value>Open pull request reviews</value>
+  </data>
+  <data name="ExpandCodeViewButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Expand or restore the code review workspace</value>
+  </data>
+  <data name="ReviewedPullRequestsExpander.Header" xml:space="preserve">
+    <value>Reviewed pull requests</value>
+  </data>
+  <data name="ReviewedPullRequestsExpander.AutomationProperties.Name" xml:space="preserve">
+    <value>Past reviewed pull requests</value>
+  </data>
+  <data name="PullRequestUrlTextBox.Header" xml:space="preserve">
+    <value>Pull request URL</value>
+  </data>
+  <data name="PullRequestUrlTextBox.PlaceholderText" xml:space="preserve">
+    <value>https://github.com/owner/repository/pull/123</value>
+  </data>
+  <data name="PullRequestUrlTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>GitHub or Azure DevOps pull request URL</value>
+  </data>
+  <data name="LocalRepositoryTextBox.Header" xml:space="preserve">
+    <value>Local repository override (optional)</value>
+  </data>
+  <data name="LocalRepositoryTextBox.PlaceholderText" xml:space="preserve">
+    <value>C:\src\repository</value>
+  </data>
+  <data name="LocalRepositoryTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Optional existing local repository path</value>
+  </data>
+  <data name="BrowseRepositoryButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Browse for a local repository folder</value>
+  </data>
+  <data name="BrowseRepositoryButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Browse for a repository folder</value>
+  </data>
+  <data name="OpenReviewButton.Content" xml:space="preserve">
+    <value>Open review</value>
+  </data>
+  <data name="CancelOpenReviewButton.Content" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="AuthenticationInfoBar.Title" xml:space="preserve">
+    <value>Sign in required</value>
+  </data>
+  <data name="AuthenticateButton.Content" xml:space="preserve">
+    <value>Sign in and retry</value>
+  </data>
+  <data name="AuthenticateButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Open provider sign-in and retry the pull request</value>
+  </data>
+  <data name="FilesHeader.Text" xml:space="preserve">
+    <value>Changed files</value>
+  </data>
+  <data name="CloseReviewButton.Content" xml:space="preserve">
+    <value>Move to reviewed</value>
+  </data>
+  <data name="CompleteReviewButton.Content" xml:space="preserve">
+    <value>Complete review and clean up</value>
+  </data>
+  <data name="ReviewActionsButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Review actions</value>
+  </data>
+  <data name="ArchiveReviewMenuItem.Text" xml:space="preserve">
+    <value>Move to reviewed</value>
+  </data>
+  <data name="CompleteReviewMenuItem.Text" xml:space="preserve">
+    <value>Complete review and clean up...</value>
+  </data>
+  <data name="CompleteReviewDialog.Title" xml:space="preserve">
+    <value>Complete review?</value>
+  </data>
+  <data name="CompleteReviewDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Complete and clean up</value>
+  </data>
+  <data name="CompleteReviewDialog.CloseButtonText" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ChangedFileFilterTextBox.PlaceholderText" xml:space="preserve">
+    <value>Filter changed files</value>
+  </data>
+  <data name="ChangedFileFilterTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Filter changed files by path</value>
+  </data>
+  <data name="ChangedFilesPaneSplitter.AutomationProperties.Name" xml:space="preserve">
+    <value>Resize changed-files pane</value>
+  </data>
+  <data name="ReviewInspectorPaneSplitter.AutomationProperties.Name" xml:space="preserve">
+    <value>Resize review inspector pane</value>
+  </data>
+  <data name="CompleteReviewConfirmationText.Text" xml:space="preserve">
+    <value>Complete this review? Its private notes, queued comments, state, and unshared cache checkout will be permanently deleted. Aggregate activity remains.</value>
+  </data>
+  <data name="ConfirmCompleteReviewButton.Content" xml:space="preserve">
+    <value>Complete and clean up</value>
+  </data>
+  <data name="IterationComboBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Select pull request iteration</value>
+  </data>
+  <data name="IterationComboBox.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Pull request iteration</value>
+  </data>
+  <data name="MarkReviewedButton.Content" xml:space="preserve">
+    <value>Mark reviewed</value>
+  </data>
+  <data name="MarkReviewedButton.Label" xml:space="preserve">
+    <value>Mark reviewed</value>
+  </data>
+  <data name="MarkReviewedButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Mark the latest pull request iteration reviewed</value>
+  </data>
+  <data name="DiffLayoutComboBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Select inline or side-by-side diff layout</value>
+  </data>
+  <data name="DiffLayoutComboBox.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Diff layout</value>
+  </data>
+  <data name="CollapseAllFunctionsButton.Content" xml:space="preserve">
+    <value>Collapse all functions</value>
+  </data>
+  <data name="CollapseAllFunctionsButton.Label" xml:space="preserve">
+    <value>Collapse functions</value>
+  </data>
+  <data name="ExpandAllFunctionsButton.Content" xml:space="preserve">
+    <value>Expand all functions</value>
+  </data>
+  <data name="ExpandAllFunctionsButton.Label" xml:space="preserve">
+    <value>Expand functions</value>
+  </data>
+  <data name="FileSearchTextBox.PlaceholderText" xml:space="preserve">
+    <value>Search code in this file</value>
+  </data>
+  <data name="FileSearchTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Search the current file</value>
+  </data>
+  <data name="FileSearchTextBox.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Find in file</value>
+  </data>
+  <data name="PreviousSearchResultButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Previous search result</value>
+  </data>
+  <data name="PreviousSearchResultButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Previous search result (Shift+F3)</value>
+  </data>
+  <data name="NextSearchResultButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Next search result</value>
+  </data>
+  <data name="NextSearchResultButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Next search result (F3)</value>
+  </data>
+  <data name="ToggleMarkdownViewButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Switch the Markdown file between formatted and source views</value>
+  </data>
+  <data name="ToggleMarkdownViewButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Toggle formatted Markdown view</value>
+  </data>
+  <data name="ViewPullRequestDescriptionButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Read the pull request description</value>
+  </data>
+  <data name="ViewPullRequestDescriptionButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>View pull request description</value>
+  </data>
+  <data name="ViewPullRequestDescriptionLabel.Text" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="OpenReviewActivityToolbarButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Open monthly review activity</value>
+  </data>
+  <data name="InlineDiffLayoutItem.Content" xml:space="preserve">
+    <value>Inline</value>
+  </data>
+  <data name="SideBySideDiffLayoutItem.Content" xml:space="preserve">
+    <value>Side by side</value>
+  </data>
+  <data name="DiffContextComboBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Number of context lines around each change</value>
+  </data>
+  <data name="DiffContextComboBox.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Context lines</value>
+  </data>
+  <data name="RefreshReviewButton.Content" xml:space="preserve">
+    <value>Refresh PR</value>
+  </data>
+  <data name="RefreshReviewButton.Label" xml:space="preserve">
+    <value>Refresh pull request</value>
+  </data>
+  <data name="PreviousChangeButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Jump to the previous changed line</value>
+  </data>
+  <data name="PreviousChangeButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Previous change</value>
+  </data>
+  <data name="NextChangeButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Jump to the next changed line</value>
+  </data>
+  <data name="NextChangeButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Next change</value>
+  </data>
+  <data name="DiffLineTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Selectable source code line</value>
+  </data>
+  <data name="OpenLineCommentButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Add a comment to this line</value>
+  </data>
+  <data name="PeekDefinitionButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Peek definition for the first symbol on this line</value>
+  </data>
+  <data name="BackToDiffButton.Content" xml:space="preserve">
+    <value>Back to diff</value>
+  </data>
+  <data name="FocusedCodeLineButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Comment on this code line</value>
+  </data>
+  <data name="FocusedCodeLineButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Add a comment or suggestion on this line</value>
+  </data>
+  <data name="FocusedCodeLineButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Comment on this code line</value>
+  </data>
+  <data name="FocusedCodeLineButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Add a comment or suggestion on this line</value>
+  </data>
+  <data name="ReviewHeader.Text" xml:space="preserve">
+    <value>Review</value>
+  </data>
+  <data name="CommentsInspectorTab.Content" xml:space="preserve">
+    <value>Comments</value>
+  </data>
+  <data name="OverviewInspectorTab.Content" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="NotesInspectorTab.Content" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="CurrentFileCommentsFilter.Content" xml:space="preserve">
+    <value>Current file</value>
+  </data>
+  <data name="HideBotCommentsFilter.Content" xml:space="preserve">
+    <value>Hide bots</value>
+  </data>
+  <data name="NotesHeader.Text" xml:space="preserve">
+    <value>Local notes</value>
+  </data>
+  <data name="NotesTextBox.PlaceholderText" xml:space="preserve">
+    <value>Keep private notes for this review</value>
+  </data>
+  <data name="NotesTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Private notes for this pull request</value>
+  </data>
+  <data name="SaveNotesButton.Content" xml:space="preserve">
+    <value>Save notes</value>
+  </data>
+  <data name="CommentsHeader.Text" xml:space="preserve">
+    <value>Line comments</value>
+  </data>
+  <data name="CommentTextBox.PlaceholderText" xml:space="preserve">
+    <value>Select a line or highlight a code fragment, then write a review comment</value>
+  </data>
+  <data name="CommentTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Review comment draft</value>
+  </data>
+  <data name="SelectedCodeHeader.Text" xml:space="preserve">
+    <value>Selected code fragment</value>
+  </data>
+  <data name="SuggestionTextBox.Header" xml:space="preserve">
+    <value>Suggested replacement (optional)</value>
+  </data>
+  <data name="SuggestionTextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter replacement code for the selected fragment or entire line</value>
+  </data>
+  <data name="SuggestionTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Suggested replacement code</value>
+  </data>
+  <data name="QueueCommentButton.Content" xml:space="preserve">
+    <value>Save comment locally</value>
+  </data>
+  <data name="DeleteCommentConfirmationText.Text" xml:space="preserve">
+    <value>Delete this saved comment? Published comments are also deleted from the pull request.</value>
+  </data>
+  <data name="ConfirmDeleteCommentButton.Content" xml:space="preserve">
+    <value>Delete comment</value>
+  </data>
+  <data name="DeleteCommentButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Delete comment</value>
+  </data>
+  <data name="EditCommentButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Edit saved comment</value>
+  </data>
+  <data name="EditCommentBodyTextBox.Header" xml:space="preserve">
+    <value>Comment</value>
+  </data>
+  <data name="EditSuggestionTextBox.Header" xml:space="preserve">
+    <value>Suggested replacement (optional)</value>
+  </data>
+  <data name="CancelEditCommentButton.Content" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SaveEditCommentButton.Content" xml:space="preserve">
+    <value>Save changes</value>
+  </data>
+  <data name="JumpToCommentButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Jump to comment line</value>
+  </data>
+  <data name="BeginCommentReplyButton.Content" xml:space="preserve">
+    <value>Reply</value>
+  </data>
+  <data name="CancelCommentReplyButton.Content" xml:space="preserve">
+    <value>Cancel reply</value>
+  </data>
+  <data name="ToggleCommentThreadButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Expand or collapse comment thread</value>
+  </data>
+  <data name="CommentReplyTextBox.PlaceholderText" xml:space="preserve">
+    <value>Write a reply to this comment thread</value>
+  </data>
+  <data name="CommentReplyTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Reply text for this comment thread</value>
+  </data>
+  <data name="PostCommentReplyButton.Content" xml:space="preserve">
+    <value>Post reply</value>
+  </data>
+  <data name="CollapseAllCommentsButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Collapse comment threads</value>
+  </data>
+  <data name="CollapseAllCommentsButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Collapse comment threads</value>
+  </data>
+  <data name="ExpandAllCommentsButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Expand comment threads</value>
+  </data>
+  <data name="ExpandAllCommentsButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Expand comment threads</value>
+  </data>
+  <data name="MarkdownBlockCommentButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Comment on this Markdown block</value>
+  </data>
+  <data name="MarkdownBlockCommentButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Add a comment to this Markdown block</value>
+  </data>
+  <data name="DescriptionDialog.Title" xml:space="preserve">
+    <value>Pull request description</value>
+  </data>
+  <data name="DescriptionDialog.CloseButtonText" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="FoldFunctionButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Expand or collapse function</value>
+  </data>
+  <data name="ExistingCommentsHeader.Text" xml:space="preserve">
+    <value>Existing pull request comments</value>
+  </data>
+  <data name="SelectedCodeCardLabel.Text" xml:space="preserve">
+    <value>Selected code</value>
+  </data>
+  <data name="SuggestionCardLabel.Text" xml:space="preserve">
+    <value>Suggested replacement</value>
+  </data>
+  <data name="FocusedCommentDialog.Title" xml:space="preserve">
+    <value>Add a review comment</value>
+  </data>
+  <data name="FocusedCommentDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Save locally</value>
+  </data>
+  <data name="FocusedCommentDialog.CloseButtonText" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="FocusedCommentTextBox.Header" xml:space="preserve">
+    <value>Comment</value>
+  </data>
+  <data name="FocusedCommentTextBox.PlaceholderText" xml:space="preserve">
+    <value>What should change or be considered?</value>
+  </data>
+  <data name="FocusedCommentTextBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Focused code review comment</value>
+  </data>
+  <data name="FocusedSuggestionTextBox.Header" xml:space="preserve">
+    <value>Suggested replacement (optional)</value>
+  </data>
+  <data name="FocusedSuggestionTextBox.PlaceholderText" xml:space="preserve">
+    <value>Edit the original line to suggest replacement code</value>
+  </data>
+  <data name="EmptyReviewTitle.Text" xml:space="preserve">
+    <value>No review is open</value>
+  </data>
+  <data name="EmptyReviewDescription.Text" xml:space="preserve">
+    <value>Paste a GitHub or Azure DevOps pull request URL above. Existing local checkouts are reused when their origin matches.</value>
+  </data>
+  <data name="OpenReviewActivityButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Open monthly review activity</value>
+  </data>
+  <data name="ActivityNavigationItem.Content" xml:space="preserve">
+    <value>Review activity</value>
+  </data>
+  <data name="ActivityNavigationItem.AutomationProperties.Name" xml:space="preserve">
+    <value>Open monthly review activity</value>
+  </data>
+  <data name="OpenReviewActivityLabel.Text" xml:space="preserve">
+    <value>Review activity</value>
+  </data>
+  <data name="ActivityBackButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Back to reviews</value>
+  </data>
+  <data name="ActivityDashboardTitle.Text" xml:space="preserve">
+    <value>Monthly review activity</value>
+  </data>
+  <data name="PreviousActivityMonthButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Show the previous month</value>
+  </data>
+  <data name="NextActivityMonthButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Show the next month</value>
+  </data>
+  <data name="PullRequestActivityTotalLabel.Text" xml:space="preserve">
+    <value>Pull request activity</value>
+  </data>
+  <data name="CommentActivityTotalLabel.Text" xml:space="preserve">
+    <value>Published comments</value>
+  </data>
+  <data name="ReviewActivityTotalLabel.Text" xml:space="preserve">
+    <value>Marked reviews</value>
+  </data>
+  <data name="PullRequestChartLegend.Text" xml:space="preserve">
+    <value>Pull requests</value>
+  </data>
+  <data name="CommentChartLegend.Text" xml:space="preserve">
+    <value>Comments</value>
+  </data>
+  <data name="ReviewChartLegend.Text" xml:space="preserve">
+    <value>Marked reviews</value>
+  </data>
+  <data name="RecentReviewsHeader.Text" xml:space="preserve">
+    <value>Recent reviewed pull requests</value>
+  </data>
+  <data name="NoRecentReviewsText.Text" xml:space="preserve">
+    <value>No reviewed pull request history yet.</value>
+  </data>
+</root>

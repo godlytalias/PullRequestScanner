@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest an improvement
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or workflow
+      description: What user workflow is difficult or missing today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: architecture
+    attributes:
+      label: Architecture considerations
+      description: Note affected provider, persistence, XAML, accessibility, or security boundaries.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Privacy check
+      options:
+        - label: This request contains no tokens, private PR data, internal hosts, or local paths.
+          required: true
