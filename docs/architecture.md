@@ -14,13 +14,23 @@ model. Its core invariants are:
    private state while retaining aggregate, non-secret activity metrics.
 4. GitHub and Azure DevOps provider differences remain behind a common
    provider contract.
-5. Static user-facing UI text comes from `.resw` resources and
-   theme-dependent XAML uses `ThemeResource` values.
+5. Static user-facing UI text is resource-backed (`.resw` in the C# app and the
+   compile-time catalog in the Rust app). Theme-dependent presentation follows
+   native WinUI theme colors; the C# XAML dictionaries use `ThemeResource`.
 
 ## Projects
 
 ```text
 PullRequestScanner/
+  Cargo.toml
+  rust/
+    crates/
+      prs-model/                 C#-JSON-compatible models
+      prs-core/                  provider-neutral Git, parsing, and services
+      prs-providers/             GitHub and Azure DevOps clients
+      prs-store/                 atomic review/activity persistence
+      prs-winui-projection/      boundary over the published Naui WinUI projection
+      prs-app/                   native Rust WinUI shell and app state
   src/
     PullRequestScanner.Core/    provider-neutral services and models
     PullRequestScanner.App/     WinUI shell, MVVM, resources, and packaging
@@ -33,7 +43,44 @@ PullRequestScanner/
 `PullRequestScanner.Core` targets .NET 8 and has no WinUI dependency. This keeps
 URL parsing, Git operations, diff parsing, provider payloads, and persistence
 testable on non-UI threads. `PullRequestScanner.App` is the packaged WinUI 3
-composition root.
+composition root and remains the behavioral reference while the Rust
+implementation completes its release cutover.
+
+The Rust workspace has the same provider-neutral boundary. `prs-model` keeps the
+JSON schema compatible with the existing C# state. `prs-core`, `prs-providers`,
+and `prs-store` contain the Git/process, HTTP, and atomic-persistence logic.
+`prs-app` owns UI-independent `MainAppState` and `ReviewSessionAppState` values,
+then renders them through raw WinUI 3 controls loaded from the C#-equivalent XAML
+under `prs-app/resources`. It does not depend on preview `windows-reactor`, and it
+does not run a local binding generator. `prs-winui-projection` reexports the
+committed `naui-winui3` projection used for Naui's supported runtime boundary and
+native hosts.
+
+The native shell uses a Tokio runtime for provider/Git/storage work and Naui
+channels to marshal all control updates back to the STA UI thread. Naui remains
+the application/window/STA bootstrap, channel adapter, and host for the native
+virtualized list, file tree, drawing surfaces, activity table, and invisible
+file-picker engine. The visible shell is not composed from Naui's generic
+`Toolbar`, `Sidebar`, `SplitView`,
+or `Tabs` presentation controls; the only Naui table remains the contained
+activity-history surface. `ui/raw.rs` resolves and updates named controls from
+raw WinUI XAML (including mounting the single title-bar **Open PR** action into
+Naui's native 32-DIP Mica caption row with drag-region exclusion), while
+`ui/native.rs` wraps only the native virtualization, `ContentControl` pane
+splitters, `NavigationView` compact-footer chrome, and `DiffList` container
+padding and side-by-side viewport width synchronization. Standalone item
+templates carry their own theme/style resources so `XamlReader` can realize
+them outside the shell's local resource scope.
+
+Native WinUI callbacks remain on the UI thread; only serializable state and safe
+error text cross the channel. The Windows text-selection notification is
+routed through a Naui channel so selecting a raw `TextBlock` can create a
+persisted character-range comment without replacing the source row or changing
+its measured height. Programmatic `NavigationView` selection is idempotent in
+the controller to prevent `SelectionChanged` from recursively rebuilding and
+reselecting the active item. The controller has process-lifetime ownership so
+WinRT callbacks and weak widget references are never dropped during thread-local
+shutdown.
 
 ## Opening a review
 
@@ -111,16 +158,18 @@ source of truth when creating provider review comments.
 
 `DiffSideBySideBuilder` pairs each contiguous deletion group with the following
 addition group by ordinal position. Context lines exist on both sides and hunk
-headers remain full-width. The UI keeps independent inline and side-by-side
-virtualized lists so changing layout cannot destabilize `ItemsSource` identity
-or item realization.
+headers remain full-width. The C# UI keeps independent inline and side-by-side
+virtualized lists so changing layout cannot destabilize `ItemsSource` identity.
+Rust projects the same immutable row states through one native list and switches
+the raw `DiffLine`/`SideBySideRow` builders without coupling state to realized
+containers.
 
 GitHub represents each PR commit as an iteration; the commit's parent is the
 iteration base. Azure DevOps uses the provider's iteration snapshots, using the
 previous iteration's source commit as the delta base and the first iteration's
 common/target commit for the initial comparison. An **All changes** synthetic
 range always preserves the original PR base-to-head view. Diff, file listing,
-definition lookup, and comments bind to the selected range without changing the
+definition lookup, and comments use the selected range without changing the
 user's checkout.
 
 Definition navigation extracts callable identifiers from each line, preserves
@@ -186,11 +235,16 @@ Each `ReviewSessionViewModel` owns one PR's:
 - Safe parsed Markdown blocks for PR descriptions and `.md` files.
 - Publish, refresh, and save commands.
 
-`MainPage.xaml` provides a navigation pane for reviews, a compact file tree, a
-virtualizing diff view, and a segmented notes/comment inspector. Single-child folder
+The C# composition root is `MainPage.xaml`; the Rust composition root is the
+equivalent `Shell.xaml` loaded by `XamlReader`. Both provide the same
+`NavigationView`, compact file tree, virtualized diff surface, `CommandBar`,
+and segmented notes/comment inspector. Rust binds state imperatively by named
+control because compiled `{x:Bind}` cannot target its Rust state objects, while
+the raw `DiffLine`, side-by-side row, navigation item, and comment/reply
+templates retain the C# geometry and theme resources. Single-child folder
 chains are projected as one `path/to/folder` node while each leaf retains its
-full file path. The app uses MVVM
-Toolkit partial observable properties for AOT-safe WinRT marshalling.
+full file path. The C# app uses MVVM Toolkit partial observable properties for
+AOT-safe WinRT marshalling.
 The repository path may be entered directly or populated by a WinUI folder
 picker initialized against the main window handle.
 Normal-mode code rows use persistent selectable text assembled from
@@ -254,6 +308,27 @@ in an unsanitized WebView.
 `ReviewActivityPage` reads the retained aggregate store, renders daily PR and
 comment bars for one month, and supports month navigation. The monthly activity
 data contains no review notes, code, or comment bodies.
+
+## Rust packaging and release
+
+`cargo build -p prs-app` uses the framework Windows App SDK already installed
+on the development machine. Packaging enables the `prs-app/self-contained`
+feature, which activates Naui's published self-contained backend. Its
+`naui-winappsdk` bundle contains the Windows App SDK DLLs, activation manifest,
+ resources, and license notices beside the executable. `rust/scripts/package.ps1`
+ stages that bundle with the existing application assets and
+`rust/package/AppxManifest.template.xml`, then uses the published WinApp CLI to
+emit architecture-specific unsigned MSIX files. The script uses only
+hash-verified NuGet archives; offline builds can copy the Naui component
+archives from the local NuGet cache into `target/naui-winappsdk-packages`.
+The Rust package retains the C# package identity so the signed output replaces
+the existing app rather than registering a second product.
+
+Release validation builds both `x86_64-pc-windows-msvc` and
+`aarch64-pc-windows-msvc`. The HTTP stack uses Windows native TLS rather than a C
+crypto provider, so the ARM64 build does not require a separate Clang toolchain.
+The package contains no token, local review JSON, repository cache, certificate,
+or development state.
 
 The compact NavigationView menu is a single-row 48 DIP `NavigationViewItem`
 template with no nested menu item. It contains the PR number/title and a

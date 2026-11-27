@@ -6,6 +6,7 @@
 - Keep provider differences in Core behind `IReviewProviderClient`.
 - Never persist or log tokens. Never commit local state, review payloads, or
   private PR screenshots.
-- Use `.resw` strings and `ThemeResource` brushes for visible UI.
+- Use `.resw` strings for C# and the compile-time Rust resource catalog;
+  `ThemeResource` brushes remain required for C# XAML.
 - Run the validation commands in `AGENTS.md`; targeted tests are useful while
   iterating, but the final gate is all tests plus Debug and Release app builds.

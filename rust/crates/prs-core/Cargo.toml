@@ -1,0 +1,25 @@
+[package]
+name = "prs-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+base64.workspace = true
+chrono.workspace = true
+prs-model = { path = "../prs-model" }
+prs-store = { path = "../prs-store" }
+regex.workspace = true
+sha2.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+url.workspace = true
+percent-encoding = "2"
+
+[dev-dependencies]
+tempfile.workspace = true

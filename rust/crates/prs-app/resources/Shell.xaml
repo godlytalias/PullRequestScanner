@@ -1,0 +1,885 @@
+<Grid
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Name="ShellRoot">
+    <Grid.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="AddedDiffLineBackgroundBrush" Color="#140B6A0B" />
+                    <SolidColorBrush x:Key="DeletedDiffLineBackgroundBrush" Color="#14C42B1C" />
+                    <SolidColorBrush x:Key="HunkDiffLineBackgroundBrush" Color="#14127E6F" />
+                    <SolidColorBrush x:Key="AddedDiffLineStrokeBrush" Color="#FF0B6A0B" />
+                    <SolidColorBrush x:Key="DeletedDiffLineStrokeBrush" Color="#FFC42B1C" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="AddedDiffLineBackgroundBrush" Color="#220B6A0B" />
+                    <SolidColorBrush x:Key="DeletedDiffLineBackgroundBrush" Color="#22C42B1C" />
+                    <SolidColorBrush x:Key="HunkDiffLineBackgroundBrush" Color="#1490DBB8" />
+                    <SolidColorBrush x:Key="AddedDiffLineStrokeBrush" Color="#FF6CCB5F" />
+                    <SolidColorBrush x:Key="DeletedDiffLineStrokeBrush" Color="#FFFF5757" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <StaticResource x:Key="AddedDiffLineBackgroundBrush" ResourceKey="SystemColorWindowColorBrush" />
+                    <StaticResource x:Key="DeletedDiffLineBackgroundBrush" ResourceKey="SystemColorWindowColorBrush" />
+                    <StaticResource x:Key="HunkDiffLineBackgroundBrush" ResourceKey="SystemColorButtonFaceColorBrush" />
+                    <StaticResource x:Key="AddedDiffLineStrokeBrush" ResourceKey="SystemColorHotlightColorBrush" />
+                    <StaticResource x:Key="DeletedDiffLineStrokeBrush" ResourceKey="SystemColorHighlightColorBrush" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+            <Style
+                x:Key="CodeTextBlockStyle"
+                TargetType="TextBlock"
+                BasedOn="{StaticResource CaptionTextBlockStyle}">
+                <Setter Property="FontFamily" Value="Cascadia Mono" />
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="LineHeight" Value="20" />
+                <Setter Property="TextTrimming" Value="None" />
+            </Style>
+            <Style
+                x:Key="DiffListViewItemStyle"
+                TargetType="ListViewItem"
+                BasedOn="{StaticResource DefaultListViewItemStyle}">
+                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="MinHeight" Value="24" />
+            </Style>
+            <Style
+                x:Key="DangerButtonStyle"
+                TargetType="Button"
+                BasedOn="{StaticResource AccentButtonStyle}">
+                <Setter Property="Background" Value="{ThemeResource SystemFillColorCriticalBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource SystemFillColorCriticalBrush}" />
+                <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+            </Style>
+        </ResourceDictionary>
+    </Grid.Resources>
+
+    <NavigationView
+        x:Name="ReviewNavigationView"
+        IsBackButtonVisible="Collapsed"
+        IsSettingsVisible="False"
+        OpenPaneLength="240"
+        CompactModeThresholdWidth="720"
+        ExpandedModeThresholdWidth="1200">
+        <NavigationView.PaneFooter>
+            <StackPanel Margin="4,0,4,8" Spacing="4">
+                <Button
+                    x:Name="OpenReviewActivityButton"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left"
+                    MinHeight="36"
+                    Padding="10,6"
+                    Style="{StaticResource SubtleButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <FontIcon FontSize="16" Glyph="&#xE9D9;" VerticalAlignment="Center" />
+                        <TextBlock
+                            x:Name="OpenReviewActivityLabel"
+                            VerticalAlignment="Center"
+                            TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Button>
+                <StackPanel x:Name="ReviewedReviewsPanel" Visibility="Collapsed">
+                    <NavigationViewItemSeparator />
+                    <Expander
+                        x:Name="ReviewedReviewsExpander"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Padding="0">
+                        <ListView
+                            x:Name="ReviewedReviewsList"
+                            MaxHeight="280"
+                            SelectionMode="Single" />
+                    </Expander>
+                </StackPanel>
+            </StackPanel>
+        </NavigationView.PaneFooter>
+        <NavigationView.Content>
+            <Grid x:Name="NavigationContentRoot">
+                <Grid x:Name="ReviewWorkspace">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid
+                        x:Name="OpenReviewPanel"
+                        Padding="24,16"
+                        ColumnSpacing="12"
+                        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                        BorderThickness="0,0,0,1"
+                        Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="280" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="PullRequestUrlTextBox" />
+                        <Grid Grid.Column="1" ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="LocalRepositoryTextBox" />
+                            <Button
+                                x:Name="BrowseRepositoryButton"
+                                Grid.Column="1"
+                                Height="32"
+                                VerticalAlignment="Bottom">
+                                <FontIcon FontSize="14" Glyph="&#xE8B7;" />
+                            </Button>
+                        </Grid>
+                        <StackPanel
+                            Grid.Column="2"
+                            VerticalAlignment="Bottom"
+                            Orientation="Horizontal"
+                            Spacing="8">
+                            <ProgressRing
+                                x:Name="OpenProgressRing"
+                                Width="20"
+                                Height="20"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed" />
+                            <Button
+                                x:Name="OpenReviewButton"
+                                Height="32"
+                                Style="{StaticResource AccentButtonStyle}" />
+                            <Button
+                                x:Name="CancelOpenReviewButton"
+                                Height="32"
+                                Visibility="Collapsed" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid
+                        x:Name="ReviewStatusPanel"
+                        Grid.Row="1"
+                        Padding="24,8"
+                        Visibility="Collapsed">
+                        <StackPanel Spacing="6">
+                            <InfoBar
+                                x:Name="AuthenticationInfoBar"
+                                IsClosable="False"
+                                IsOpen="False"
+                                Severity="Warning">
+                                <InfoBar.ActionButton>
+                                    <Button x:Name="AuthenticateButton" />
+                                </InfoBar.ActionButton>
+                            </InfoBar>
+                            <InfoBar
+                                x:Name="GlobalErrorInfoBar"
+                                IsClosable="True"
+                                IsOpen="False"
+                                Severity="Error" />
+                            <TextBlock
+                                x:Name="GlobalStatusText"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                TextWrapping="Wrap"
+                                Visibility="Collapsed" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid
+                        x:Name="ActiveReviewGrid"
+                        Grid.Row="2"
+                        Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="ChangedFilesColumn" Width="240" />
+                            <ColumnDefinition x:Name="ChangedFilesSplitterColumn" Width="12" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition x:Name="InspectorSplitterColumn" Width="12" />
+                            <ColumnDefinition x:Name="InspectorColumn" Width="320" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid
+                            x:Name="ChangedFilesPane"
+                            Padding="16,16,12,16"
+                            RowSpacing="12"
+                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            BorderThickness="0,0,1,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="ChangedFilesSummary"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    VerticalAlignment="Center" />
+                                <Button
+                                    x:Name="ReviewActionsButton"
+                                    Grid.Column="1"
+                                    Padding="8,4"
+                                    Style="{StaticResource SubtleButtonStyle}">
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                    <Button.Flyout>
+                                        <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                            <MenuFlyoutItem x:Name="ArchiveReviewMenuItem" />
+                                            <MenuFlyoutItem x:Name="ReopenReviewMenuItem" Visibility="Collapsed" />
+                                            <MenuFlyoutSeparator x:Name="ReviewActionsSeparator" />
+                                            <MenuFlyoutItem x:Name="CompleteReviewMenuItem" />
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </Grid>
+                            <TextBox x:Name="ChangedFileFilterTextBox" Grid.Row="1" />
+                            <Grid x:Name="FileTreeHost" Grid.Row="2" />
+                        </Grid>
+
+                        <ContentControl
+                            x:Name="ChangedFilesPaneSplitter"
+                            Grid.Column="1"
+                            Background="Transparent"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch"
+                            IsTabStop="True"
+                            MinWidth="12"
+                            UseSystemFocusVisuals="True"
+                            VerticalAlignment="Stretch"
+                            VerticalContentAlignment="Stretch"
+                            Width="12">
+                            <Grid Background="Transparent">
+                                <Border
+                                    Width="2"
+                                    HorizontalAlignment="Center"
+                                    Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                    CornerRadius="1" />
+                            </Grid>
+                        </ContentControl>
+
+                        <Grid
+                            x:Name="DiffWorkspace"
+                            Grid.Column="2"
+                            MinWidth="0"
+                            RowSpacing="8"
+                            Padding="16,16,16,12">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid
+                                ColumnSpacing="12"
+                                Padding="0,0,0,4"
+                                RowSpacing="6">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="2" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Spacing="3" VerticalAlignment="Center">
+                                    <TextBlock
+                                        x:Name="ReviewTitle"
+                                        Style="{StaticResource SubtitleTextBlockStyle}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                    <TextBlock
+                                        x:Name="ReviewWorkspaceSubtitle"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock
+                                            x:Name="ReviewWorkspaceStatus"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            TextTrimming="CharacterEllipsis"
+                                            TextWrapping="NoWrap"
+                                            VerticalAlignment="Center" />
+                                        <Border
+                                            x:Name="NewIterationBadge"
+                                            Padding="6,1"
+                                            Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                            CornerRadius="{ThemeResource ControlCornerRadius}"
+                                            VerticalAlignment="Center"
+                                            Visibility="Collapsed">
+                                            <TextBlock
+                                                x:Name="NewIterationPill"
+                                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                                Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <Button
+                                        x:Name="BackToDiffButton"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,2,0,0"
+                                        Padding="8,4"
+                                        Visibility="Collapsed" />
+                                </StackPanel>
+                                <StackPanel
+                                    Grid.Column="1"
+                                    VerticalAlignment="Top"
+                                    Orientation="Horizontal"
+                                    Spacing="8">
+                                    <Button x:Name="DescriptionButton" Height="32">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon FontSize="14" Glyph="&#xE8A4;" />
+                                            <TextBlock x:Name="DescriptionLabel" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="FocusModeButton" Height="32">
+                                        <FontIcon x:Name="FocusModeGlyph" FontSize="14" Glyph="&#xE740;" />
+                                    </Button>
+                                </StackPanel>
+                                <CommandBar
+                                    x:Name="ReviewToolbar"
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    Background="Transparent"
+                                    DefaultLabelPosition="Collapsed"
+                                    HorizontalAlignment="Left"
+                                    IsDynamicOverflowEnabled="True"
+                                    OverflowButtonVisibility="Visible">
+                                    <CommandBar.PrimaryCommands>
+                                        <AppBarElementContainer VerticalContentAlignment="Center">
+                                            <ComboBox x:Name="IterationComboBox" Margin="0,0,4,0" />
+                                        </AppBarElementContainer>
+                                        <AppBarElementContainer VerticalContentAlignment="Center">
+                                            <ComboBox x:Name="DiffLayoutComboBox" Margin="0,0,4,0" />
+                                        </AppBarElementContainer>
+                                        <AppBarElementContainer x:Name="DiffContextContainer" VerticalContentAlignment="Center" Visibility="Collapsed">
+                                            <ComboBox x:Name="DiffContextComboBox" Margin="0,0,4,0" />
+                                        </AppBarElementContainer>
+                                        <AppBarElementContainer x:Name="MarkdownToggleContainer" VerticalContentAlignment="Center" Visibility="Collapsed">
+                                            <Button x:Name="MarkdownToggleButton" Height="32" Margin="0,0,4,0" />
+                                        </AppBarElementContainer>
+                                        <AppBarElementContainer IsCompact="False" VerticalContentAlignment="Center">
+                                            <Grid ColumnSpacing="6" Margin="0,0,4,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="168" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox x:Name="FileSearchTextBox" />
+                                                <TextBlock
+                                                    x:Name="FileSearchPositionText"
+                                                    Grid.Column="1"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="Collapsed" />
+                                            </Grid>
+                                        </AppBarElementContainer>
+                                        <AppBarButton x:Name="PreviousSearchResultButton" Width="44">
+                                            <AppBarButton.Icon><FontIcon Glyph="&#xE70E;" /></AppBarButton.Icon>
+                                        </AppBarButton>
+                                        <AppBarButton x:Name="NextSearchResultButton" Width="44">
+                                            <AppBarButton.Icon><FontIcon Glyph="&#xE70D;" /></AppBarButton.Icon>
+                                        </AppBarButton>
+                                        <AppBarButton x:Name="PreviousChangeButton" Width="44">
+                                            <AppBarButton.Icon><FontIcon Glyph="&#xE72B;" /></AppBarButton.Icon>
+                                        </AppBarButton>
+                                        <AppBarButton x:Name="NextChangeButton" Width="44">
+                                            <AppBarButton.Icon><FontIcon Glyph="&#xE72A;" /></AppBarButton.Icon>
+                                        </AppBarButton>
+                                    </CommandBar.PrimaryCommands>
+                                    <CommandBar.SecondaryCommands>
+                                        <AppBarButton x:Name="CollapseFunctionsButton">
+                                            <AppBarButton.Icon><FontIcon Glyph="&#xE70D;" /></AppBarButton.Icon>
+                                        </AppBarButton>
+                                        <AppBarButton x:Name="ExpandFunctionsButton">
+                                            <AppBarButton.Icon><FontIcon Glyph="&#xE70E;" /></AppBarButton.Icon>
+                                        </AppBarButton>
+                                        <AppBarSeparator x:Name="FunctionsSeparator" />
+                                        <AppBarButton x:Name="MarkReviewedButton">
+                                            <AppBarButton.Icon><FontIcon Glyph="&#xE73E;" /></AppBarButton.Icon>
+                                        </AppBarButton>
+                                        <AppBarButton x:Name="RefreshReviewButton">
+                                            <AppBarButton.Icon><FontIcon Glyph="&#xE72C;" /></AppBarButton.Icon>
+                                        </AppBarButton>
+                                    </CommandBar.SecondaryCommands>
+                                </CommandBar>
+                                <ProgressBar
+                                    x:Name="ReviewProgressBar"
+                                    Grid.Row="2"
+                                    Grid.ColumnSpan="2"
+                                    Height="2"
+                                    IsIndeterminate="True"
+                                    Visibility="Collapsed" />
+                            </Grid>
+
+                            <Grid
+                                x:Name="DiffSurface"
+                                Grid.Row="1"
+                                HorizontalAlignment="Stretch">
+                                <Grid x:Name="RawDiffHost">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition x:Name="DiffMarkerColumn" Width="24" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid
+                                        x:Name="DiffListHost"
+                                        Margin="0,2,0,0" />
+                                    <Grid
+                                        x:Name="DiffMarkerHost"
+                                        Grid.Column="1"
+                                        Background="Transparent" />
+                                </Grid>
+                                <ScrollViewer
+                                    x:Name="FormattedMarkdownViewer"
+                                    HorizontalContentAlignment="Stretch"
+                                    HorizontalScrollBarVisibility="Disabled"
+                                    VerticalScrollBarVisibility="Auto"
+                                    Visibility="Collapsed">
+                                    <StackPanel
+                                        x:Name="FormattedMarkdownContent"
+                                        Padding="8,8,16,16"
+                                        Spacing="8" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Grid>
+
+                        <ContentControl
+                            x:Name="ReviewInspectorPaneSplitter"
+                            Grid.Column="3"
+                            Background="Transparent"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch"
+                            IsTabStop="True"
+                            MinWidth="12"
+                            UseSystemFocusVisuals="True"
+                            VerticalAlignment="Stretch"
+                            VerticalContentAlignment="Stretch"
+                            Width="12">
+                            <Grid Background="Transparent">
+                                <Border
+                                    Width="2"
+                                    HorizontalAlignment="Center"
+                                    Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                    CornerRadius="1" />
+                            </Grid>
+                        </ContentControl>
+
+                        <Grid
+                            x:Name="ReviewInspectorPane"
+                            Grid.Column="4"
+                            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            BorderThickness="1,0,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid Padding="12,8,12,0" ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ToggleButton x:Name="CommentsInspectorTab" HorizontalAlignment="Stretch" IsChecked="True" />
+                                <ToggleButton x:Name="OverviewInspectorTab" Grid.Column="1" HorizontalAlignment="Stretch" />
+                                <ToggleButton x:Name="NotesInspectorTab" Grid.Column="2" HorizontalAlignment="Stretch" />
+                            </Grid>
+                            <ScrollViewer
+                                Grid.Row="1"
+                                HorizontalScrollBarVisibility="Disabled"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalScrollBarVisibility="Auto">
+                                <StackPanel Padding="16">
+                                    <InfoBar
+                                        x:Name="ReviewErrorInfoBar"
+                                        Margin="0,0,0,12"
+                                        IsClosable="True"
+                                        IsOpen="False"
+                                        Severity="Error" />
+                                    <StackPanel
+                                        x:Name="OverviewPanel"
+                                        Margin="0,0,0,16"
+                                        Spacing="6"
+                                        Visibility="Collapsed">
+                                        <TextBlock x:Name="OverviewHeader" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                        <TextBlock
+                                            x:Name="ProviderLabel"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            TextWrapping="Wrap" />
+                                        <HyperlinkButton
+                                            x:Name="ReviewHyperlink"
+                                            Padding="0,4" />
+                                        <TextBlock
+                                            x:Name="RepositorySourceLabel"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            TextWrapping="Wrap" />
+                                        <TextBlock
+                                            x:Name="RepositoryLocationLabel"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            IsTextSelectionEnabled="True"
+                                            TextWrapping="Wrap" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        x:Name="NotesPanel"
+                                        Margin="0,0,0,16"
+                                        Spacing="8"
+                                        Visibility="Collapsed">
+                                        <TextBlock x:Name="NotesHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                        <TextBox x:Name="NotesTextBox" AcceptsReturn="True" MinHeight="140" TextWrapping="Wrap" />
+                                        <TextBlock
+                                            x:Name="NotesSaveStatus"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}" />
+                                        <Button x:Name="SaveNotesButton" Visibility="Collapsed" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        x:Name="CommentsPanel"
+                                        Margin="0,0,0,16"
+                                        Spacing="8">
+                                        <Grid ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                x:Name="CommentsHeader"
+                                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                VerticalAlignment="Center" />
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                                <Button x:Name="CollapseAllCommentsButton" Padding="6,4" Style="{StaticResource SubtleButtonStyle}">
+                                                    <FontIcon FontSize="12" Glyph="&#xE70D;" />
+                                                </Button>
+                                                <Button x:Name="ExpandAllCommentsButton" Padding="6,4" Style="{StaticResource SubtleButtonStyle}">
+                                                    <FontIcon FontSize="12" Glyph="&#xE70E;" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <ToggleButton x:Name="CurrentFileCommentsFilter" />
+                                            <ToggleButton x:Name="HideBotCommentsFilter" />
+                                        </StackPanel>
+                                        <TextBlock
+                                            x:Name="SelectedLineDescription"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            TextWrapping="Wrap" />
+                                        <StackPanel
+                                            x:Name="SelectedCodePanel"
+                                            Padding="8"
+                                            Spacing="4"
+                                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="{ThemeResource ControlCornerRadius}"
+                                            Visibility="Collapsed">
+                                            <TextBlock
+                                                x:Name="SelectedCodeHeader"
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{StaticResource CaptionTextBlockStyle}" />
+                                            <TextBlock
+                                                x:Name="SelectedCodeFragment"
+                                                Style="{StaticResource CodeTextBlockStyle}"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <TextBox
+                                            x:Name="DraftCommentTextBox"
+                                            AcceptsReturn="True"
+                                            MinHeight="96"
+                                            TextWrapping="Wrap" />
+                                        <TextBox
+                                            x:Name="DraftSuggestionTextBox"
+                                            AcceptsReturn="True"
+                                            FontFamily="Cascadia Mono"
+                                            FontSize="13"
+                                            IsSpellCheckEnabled="False"
+                                            MinHeight="72"
+                                            TextWrapping="NoWrap" />
+                                        <Button x:Name="QueueCommentButton" />
+                                        <StackPanel x:Name="LocalCommentsList" Spacing="8" />
+                                        <StackPanel
+                                            x:Name="RemoteCommentsPanel"
+                                            Margin="0,8,0,0"
+                                            Spacing="8">
+                                            <TextBlock x:Name="ExistingCommentsHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                            <StackPanel x:Name="RemoteCommentsList" Spacing="8" />
+                                        </StackPanel>
+                                        <TextBlock
+                                            x:Name="EmptyCommentsText"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            TextWrapping="Wrap"
+                                            Visibility="Collapsed" />
+                                    </StackPanel>
+                                    <TextBlock
+                                        x:Name="ReviewStatusText"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </ScrollViewer>
+                            <Grid
+                                x:Name="PublishFooter"
+                                Grid.Row="2"
+                                Padding="12"
+                                ColumnSpacing="8"
+                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                BorderThickness="0,1,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    x:Name="PendingCommentSummary"
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="Wrap" />
+                                <Button
+                                    x:Name="PublishCommentsButton"
+                                    Grid.Column="1"
+                                    Style="{StaticResource AccentButtonStyle}" />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+
+                    <StackPanel
+                        x:Name="EmptyReviewPanel"
+                        Grid.Row="2"
+                        MaxWidth="460"
+                        Padding="24"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="12">
+                        <FontIcon
+                            FontSize="48"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Glyph="&#xE8C8;" />
+                        <TextBlock
+                            x:Name="EmptyReviewTitle"
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock
+                            x:Name="EmptyReviewDescription"
+                            HorizontalAlignment="Center"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="ActivityHost" Visibility="Collapsed">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Padding="24,16,24,8" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="ActivityBackButton" VerticalAlignment="Center">
+                            <FontIcon FontSize="14" Glyph="&#xE72B;" />
+                        </Button>
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock
+                                x:Name="ActivityTitle"
+                                Style="{StaticResource TitleTextBlockStyle}"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock
+                                x:Name="ActivityMonthLabel"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Button x:Name="ActivityPreviousMonthButton">
+                                <FontIcon FontSize="14" Glyph="&#xE76B;" />
+                            </Button>
+                            <Button x:Name="ActivityNextMonthButton">
+                                <FontIcon FontSize="14" Glyph="&#xE76C;" />
+                            </Button>
+                            <ProgressRing
+                                x:Name="ActivityProgressRing"
+                                Width="20"
+                                Height="20"
+                                VerticalAlignment="Center"
+                                Visibility="Collapsed" />
+                        </StackPanel>
+                    </Grid>
+                    <InfoBar
+                        x:Name="ActivityErrorInfoBar"
+                        Grid.Row="1"
+                        Margin="24,0,24,8"
+                        IsClosable="True"
+                        IsOpen="False"
+                        Severity="Error" />
+                    <Grid
+                        x:Name="ActivityContentHost"
+                        Grid.Row="2"
+                        Padding="24,8,24,24"
+                        RowSpacing="12">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="224" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid x:Name="ActivityMetrics" ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid Padding="16" RowSpacing="4" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="{StaticResource ControlCornerRadius}">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <TextBlock x:Name="ActivityPullRequestLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock x:Name="ActivityPullRequestTotal" Grid.Row="1" Style="{StaticResource TitleTextBlockStyle}" />
+                            </Grid>
+                            <Grid Grid.Column="1" Padding="16" RowSpacing="4" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="{StaticResource ControlCornerRadius}">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <TextBlock x:Name="ActivityCommentLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock x:Name="ActivityCommentTotal" Grid.Row="1" Style="{StaticResource TitleTextBlockStyle}" />
+                            </Grid>
+                            <Grid Grid.Column="2" Padding="16" RowSpacing="4" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="{StaticResource ControlCornerRadius}">
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <TextBlock x:Name="ActivityReviewLabel" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock x:Name="ActivityReviewTotal" Grid.Row="1" Style="{StaticResource TitleTextBlockStyle}" />
+                            </Grid>
+                        </Grid>
+                        <Grid Grid.Row="1" Padding="16" RowSpacing="10" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="{StaticResource ControlCornerRadius}">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal" Spacing="16">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Border Width="12" Height="12" VerticalAlignment="Center" Background="{ThemeResource AccentFillColorDefaultBrush}" CornerRadius="{StaticResource ControlCornerRadius}" />
+                                    <TextBlock x:Name="ActivityChartLegendPullRequests" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Border Width="12" Height="12" VerticalAlignment="Center" Background="{ThemeResource SystemFillColorSuccessBrush}" CornerRadius="{StaticResource ControlCornerRadius}" />
+                                    <TextBlock x:Name="ActivityChartLegendComments" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Border Width="12" Height="12" VerticalAlignment="Center" Background="{ThemeResource SystemFillColorCautionBrush}" CornerRadius="{StaticResource ControlCornerRadius}" />
+                                    <TextBlock x:Name="ActivityChartLegendReviews" Style="{StaticResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+                            <Grid x:Name="ActivityChartHost" Grid.Row="1" />
+                        </Grid>
+                        <Grid Grid.Row="2" RowSpacing="8">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <TextBlock x:Name="RecentReviewsHeader" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <Grid x:Name="RecentReviewsHost" Grid.Row="1" />
+                            <TextBlock
+                                x:Name="RecentReviewsEmpty"
+                                Grid.Row="1"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Visibility="Collapsed" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </NavigationView.Content>
+    </NavigationView>
+
+    <ContentDialog x:Name="OpenReviewDialog" DefaultButton="Primary">
+        <ContentDialog.Resources>
+            <x:Double x:Key="ContentDialogMaxWidth">640</x:Double>
+        </ContentDialog.Resources>
+        <StackPanel MinWidth="460" Spacing="12">
+            <TextBox x:Name="OpenReviewDialogUrlTextBox" />
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="OpenReviewDialogRepositoryTextBox" />
+                <Button
+                    x:Name="OpenReviewDialogBrowseButton"
+                    Grid.Column="1"
+                    Height="32"
+                    VerticalAlignment="Bottom">
+                    <FontIcon FontSize="14" Glyph="&#xE8B7;" />
+                </Button>
+            </Grid>
+            <ProgressRing
+                x:Name="OpenReviewDialogProgressRing"
+                Width="20"
+                Height="20"
+                HorizontalAlignment="Left"
+                Visibility="Collapsed" />
+        </StackPanel>
+    </ContentDialog>
+
+    <ContentDialog x:Name="DescriptionDialog" DefaultButton="Close">
+        <ContentDialog.Resources>
+            <x:Double x:Key="ContentDialogMaxWidth">760</x:Double>
+        </ContentDialog.Resources>
+        <ScrollViewer
+            MaxHeight="560"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                x:Name="DescriptionDialogContent"
+                MinWidth="460"
+                Padding="0,0,12,0"
+                Spacing="10" />
+        </ScrollViewer>
+    </ContentDialog>
+
+    <ContentDialog
+        x:Name="CompletionDialog"
+        DefaultButton="Close"
+        PrimaryButtonStyle="{StaticResource DangerButtonStyle}">
+        <ContentDialog.Resources>
+            <StaticResource x:Key="AccentButtonBackground" ResourceKey="SystemFillColorCriticalBrush" />
+            <StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="SystemFillColorCriticalBrush" />
+            <StaticResource x:Key="AccentButtonBackgroundPressed" ResourceKey="SystemFillColorCriticalBrush" />
+        </ContentDialog.Resources>
+        <TextBlock x:Name="CompletionDialogMessage" MaxWidth="460" TextWrapping="Wrap" />
+    </ContentDialog>
+
+    <ContentDialog
+        x:Name="DeletionDialog"
+        DefaultButton="Close"
+        PrimaryButtonStyle="{StaticResource DangerButtonStyle}">
+        <ContentDialog.Resources>
+            <StaticResource x:Key="AccentButtonBackground" ResourceKey="SystemFillColorCriticalBrush" />
+            <StaticResource x:Key="AccentButtonBackgroundPointerOver" ResourceKey="SystemFillColorCriticalBrush" />
+            <StaticResource x:Key="AccentButtonBackgroundPressed" ResourceKey="SystemFillColorCriticalBrush" />
+        </ContentDialog.Resources>
+        <TextBlock x:Name="DeletionDialogMessage" MaxWidth="460" TextWrapping="Wrap" />
+    </ContentDialog>
+
+    <ContentDialog x:Name="FocusedCommentDialog" DefaultButton="Primary">
+        <ContentDialog.Resources>
+            <x:Double x:Key="ContentDialogMaxWidth">640</x:Double>
+        </ContentDialog.Resources>
+        <StackPanel MinWidth="460" Spacing="12">
+            <TextBlock
+                x:Name="FocusedCommentLineHeader"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                TextWrapping="Wrap" />
+            <TextBlock
+                x:Name="FocusedCommentContext"
+                IsTextSelectionEnabled="True"
+                Style="{StaticResource CodeTextBlockStyle}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+            <TextBox
+                x:Name="FocusedCommentTextBox"
+                AcceptsReturn="True"
+                MinHeight="120"
+                TextWrapping="Wrap" />
+            <TextBox
+                x:Name="FocusedSuggestionTextBox"
+                AcceptsReturn="True"
+                FontFamily="Cascadia Mono"
+                FontSize="13"
+                IsSpellCheckEnabled="False"
+                MinHeight="96"
+                TextWrapping="NoWrap" />
+        </StackPanel>
+    </ContentDialog>
+</Grid>

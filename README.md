@@ -113,6 +113,7 @@ Requirements:
 - Windows 10 1809 or later for the current package manifest; a current Windows 11
   SDK/WinUI runtime is recommended.
 - .NET 8 SDK support from a .NET 10 or newer SDK command line.
+- Rust 1.95 for the native migration workspace.
 - Git.
 
 ```powershell
@@ -129,6 +130,23 @@ dotnet run --project .\src\PullRequestScanner.App\PullRequestScanner.App.csproj 
 
 The repository's `NuGet.config` restores only from public NuGet.org.
 
+The Rust WinUI 3 application can be built and run directly:
+
+```powershell
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+cargo run -p prs-app
+```
+
+It uses the published `naui` Windows backend and does not depend on
+`windows-reactor` or a local WinMD generation executable. Self-contained x64
+and ARM64 MSIX outputs are produced with:
+
+```powershell
+pwsh .\rust\scripts\package.ps1 -Architecture all
+```
+
 ## Development
 
 - Start with [AGENTS.md](AGENTS.md) for the component map, validation commands,
@@ -136,6 +154,19 @@ The repository's `NuGet.config` restores only from public NuGet.org.
 - Read [docs/architecture.md](docs/architecture.md) before changing component
   boundaries or persistence behavior.
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+## Rust migration
+
+The Rust implementation is under active development in `rust/`. It uses the
+published `naui`/`naui-winui3` WinUI 3 backend and adds no preview
+`windows-reactor` dependency or local WinMD generator. Provider, Git,
+persistence, state, native shell, and both-architecture packaging are already
+ported, and the Rust app has completed two live interaction/regression passes
+(development and self-contained package). Those passes do not claim pixel or
+layout parity: the C# app still has custom XAML composition and visual
+templates that must be matched before cutover. See
+[docs/rust-migration.md](docs/rust-migration.md) for the cutover gate and
+commands.
 
 ## Local state
 

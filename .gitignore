@@ -19,3 +19,5 @@ BundleArtifacts/
 publish/
 .cache/
 .local/
+/target/
+/rust/target/

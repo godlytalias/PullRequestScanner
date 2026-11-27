@@ -1,0 +1,107 @@
+<Grid
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Margin="0,4,0,0"
+    Padding="12"
+    HorizontalAlignment="Stretch"
+    RowSpacing="8"
+    Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+    BorderThickness="1"
+    CornerRadius="{ThemeResource ControlCornerRadius}">
+    <Grid.Resources>
+        <Style
+            x:Key="CodeTextBlockStyle"
+            TargetType="TextBlock"
+            BasedOn="{StaticResource CaptionTextBlockStyle}">
+            <Setter Property="FontFamily" Value="Cascadia Mono" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+            <Setter Property="LineHeight" Value="20" />
+            <Setter Property="TextTrimming" Value="None" />
+        </Style>
+    </Grid.Resources>
+    <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <Grid ColumnSpacing="8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Button x:Name="ToggleThreadButton" Padding="4" VerticalAlignment="Center" Style="{StaticResource SubtleButtonStyle}">
+            <FontIcon x:Name="ExpansionGlyph" FontSize="12" />
+        </Button>
+        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+            <TextBlock x:Name="AuthorText" Style="{StaticResource CaptionTextBlockStyle}" TextTrimming="CharacterEllipsis" />
+            <TextBlock
+                x:Name="ThreadSummaryText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Visibility="Collapsed" />
+        </StackPanel>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <Border x:Name="DraftBadge" Padding="6,2" VerticalAlignment="Center" Background="{ThemeResource SystemFillColorCautionBackgroundBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Visibility="Collapsed">
+                <TextBlock x:Name="DraftStatusText" Foreground="{ThemeResource SystemFillColorCautionBrush}" Style="{StaticResource CaptionTextBlockStyle}" />
+            </Border>
+            <Border x:Name="FailedBadge" Padding="6,2" VerticalAlignment="Center" Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Visibility="Collapsed">
+                <TextBlock x:Name="FailedStatusText" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Style="{StaticResource CaptionTextBlockStyle}" />
+            </Border>
+            <Border x:Name="ActiveBadge" Padding="6,2" VerticalAlignment="Center" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Visibility="Collapsed">
+                <TextBlock x:Name="ActiveStatusText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" />
+            </Border>
+            <Border x:Name="PublishedBadge" Padding="6,2" VerticalAlignment="Center" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Visibility="Collapsed">
+                <TextBlock x:Name="PublishedStatusText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" />
+            </Border>
+            <Border x:Name="ResolvedBadge" Padding="6,2" VerticalAlignment="Center" Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Visibility="Collapsed">
+                <TextBlock x:Name="ResolvedStatusText" Foreground="{ThemeResource SystemFillColorSuccessBrush}" Style="{StaticResource CaptionTextBlockStyle}" />
+            </Border>
+            <Button x:Name="JumpToCommentButton" Padding="4" VerticalAlignment="Center" Style="{StaticResource SubtleButtonStyle}" Visibility="Collapsed">
+                <FontIcon FontSize="12" Glyph="&#xE72A;" />
+            </Button>
+            <Button x:Name="OpenProviderButton" Padding="4" VerticalAlignment="Center" Style="{StaticResource SubtleButtonStyle}" Visibility="Collapsed">
+                <FontIcon FontSize="12" Glyph="&#xE8A7;" />
+            </Button>
+        </StackPanel>
+        <Button x:Name="EditCommentButton" Grid.Column="3" Padding="4" VerticalAlignment="Center" Style="{StaticResource SubtleButtonStyle}" Visibility="Collapsed">
+            <FontIcon FontSize="12" Glyph="&#xE70F;" />
+        </Button>
+        <Button x:Name="DeleteCommentButton" Grid.Column="4" Padding="4" VerticalAlignment="Center" Style="{StaticResource SubtleButtonStyle}" Visibility="Collapsed">
+            <FontIcon FontSize="12" Glyph="&#xE74D;" />
+        </Button>
+    </Grid>
+    <StackPanel x:Name="ExpandedContent" Grid.Row="1" Spacing="8">
+        <TextBlock x:Name="LocationText" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap" />
+        <StackPanel x:Name="SelectionPanel" Padding="8" Spacing="2" Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Visibility="Collapsed">
+            <TextBlock x:Name="SelectedCodeHeader" Style="{StaticResource CaptionTextBlockStyle}" />
+            <TextBlock x:Name="SelectedCodeText" Style="{StaticResource CodeTextBlockStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel x:Name="SuggestionPanel" Padding="8" Spacing="2" Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}" CornerRadius="{ThemeResource ControlCornerRadius}" Visibility="Collapsed">
+            <TextBlock x:Name="SuggestionHeader" Style="{StaticResource CaptionTextBlockStyle}" />
+            <TextBlock x:Name="SuggestionText" Style="{StaticResource CodeTextBlockStyle}" IsTextSelectionEnabled="True" TextWrapping="Wrap" />
+        </StackPanel>
+        <TextBlock x:Name="BodyText" IsTextSelectionEnabled="True" TextWrapping="Wrap" />
+        <TextBlock x:Name="ErrorText" Foreground="{ThemeResource SystemFillColorCriticalBrush}" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap" Visibility="Collapsed" />
+        <StackPanel x:Name="EditComposer" Spacing="8" Visibility="Collapsed">
+            <TextBox x:Name="EditBodyTextBox" AcceptsReturn="True" MinHeight="96" TextWrapping="Wrap" />
+            <TextBox x:Name="EditSuggestionTextBox" AcceptsReturn="True" FontFamily="Cascadia Mono" FontSize="13" IsSpellCheckEnabled="False" MinHeight="72" TextWrapping="NoWrap" />
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+                <Button x:Name="CancelEditButton" />
+                <Button x:Name="SaveEditButton" Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel x:Name="RepliesList" Spacing="8" />
+        <Button x:Name="BeginReplyButton" HorizontalAlignment="Left" />
+        <StackPanel x:Name="ReplyComposer" Spacing="8" Visibility="Collapsed">
+            <TextBox x:Name="ReplyTextBox" AcceptsReturn="True" MinHeight="72" TextWrapping="Wrap" />
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Spacing="8">
+                <Button x:Name="CancelReplyButton" />
+                <Button x:Name="PostReplyButton" Style="{StaticResource AccentButtonStyle}" />
+            </StackPanel>
+        </StackPanel>
+    </StackPanel>
+</Grid>
